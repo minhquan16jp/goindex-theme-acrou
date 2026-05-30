@@ -6,7 +6,8 @@
       : "";
 
   if(pdf){
-    location.replace(pdf);
+    window.location.href = pdf;
+    return "";
   }
 
   return pdf;
