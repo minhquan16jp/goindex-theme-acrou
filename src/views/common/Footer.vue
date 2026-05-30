@@ -6,8 +6,8 @@
           <div class="tags has-addons">
             <a
               class="tag is-dark"
-              href="https://github.com/Aicirou/goindex-theme-acrou"
-            >goindex-theme-acrou</a>
+              href="https://www.facebook.com/kuan1611/"
+            >Minh Quan</a>
             <span class="tag is-light">
               MIT &nbsp;
               <span class="icon">
