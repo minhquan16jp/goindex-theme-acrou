@@ -9,9 +9,9 @@
               href="https://www.facebook.com/kuan1611/"
             >Minh Quan</a>
             <span class="tag is-light">
-              MIT &nbsp;
+              FB &nbsp;
               <span class="icon">
-                <i class="fa fa-github"></i>
+                <i class="fa fa-facebook"></i>
               </span>
             </span>
           </div>
