@@ -1,6 +1,6 @@
 var scripts = [
-  "https://cdn.jsdelivr.net/gh/Aicirou/goindex-theme-acrou@v2.0.8/dist/js/app.da7f5f3f.js",
-  "https://cdn.jsdelivr.net/gh/Aicirou/goindex-theme-acrou@v2.0.8/dist/js/chunk-vendors.3c185c97.js",
+  "https://cdn.jsdelivr.net/gh/minhquan16jp/goindex-theme-acrou@v2.0.8/dist/js/app.da7f5f3f.js",
+  "https://cdn.jsdelivr.net/gh/minhquan16jp/goindex-theme-acrou@v2.0.8/dist/js/chunk-vendors.3c185c97.js",
 ];
 var cdnjs = [
   "https://cdn.jsdelivr.net/npm/vue@2.6.11/dist/vue.min.js",
