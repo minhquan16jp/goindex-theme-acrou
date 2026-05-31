@@ -16,12 +16,7 @@
     </div>
     <div v-else>
       <vue-plyr ref="plyr" :options="options">
-        <video
-  controls
-  crossorigin
-  playsinline
-  preload="metadata"
->
+        <video controls crossorigin playsinline>
           <source :src="videoUrl" type="video/mp4" />
           <track
             kind="captions"
@@ -96,20 +91,8 @@ export default {
     };
   },
   mounted() {
-  this.render();
-
-  this.$nextTick(() => {
-    setTimeout(() => {
-      const saved = localStorage.getItem(
-        "video_" + this.videoUrl
-      );
-
-      if (saved && this.player) {
-        this.player.currentTime = Number(saved);
-      }
-    }, 1000);
-  });
-},
+    this.render();
+  },
   methods: {
     render() {
       let path = encodeURI(this.url);
@@ -117,14 +100,6 @@ export default {
       this.suffix = path.substring(index + 1, path.length);
       this.loadSub(path, index);
       this.videoUrl = window.location.origin + path;
-     setInterval(() => {
-  if (this.player) {
-    localStorage.setItem(
-      "video_" + this.videoUrl,
-      this.player.currentTime
-    );
-  }
-}, 5000);
       this.apiVideoUrl = this.options.api + this.videoUrl;
       if (!this.options.api) {
         let options = {
