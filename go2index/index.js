@@ -64,7 +64,7 @@ var  authConfig  =  {
   enable_password_file_verify: false,
 };
 var themeOptions = {
-  cdn: "https://cdn.jsdelivr.net/gh/Aicirou/goindex-theme-acrou",
+  cdn: "https://cdn.jsdelivr.net/gh/minhquan16jp/goindex-theme-acrou",
 // Theme version number
   version: "2.0.8",
 //Optional default system language: en/zh-chs/zh-cht
