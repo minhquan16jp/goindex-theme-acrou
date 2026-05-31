@@ -17,7 +17,7 @@
   </div>
 </div>
       <list-view
-        :data="files"
+        :data="filteredFiles"
         v-if="mode === 'list'"
         :icons="getIcon"
         :action="action"
@@ -25,7 +25,7 @@
       />
       <grid-view
         class="g2-content"
-        :data="files"
+        :data="filteredFiles"
         v-if="mode !== 'list'"
         :getIcon="getIcon"
         :action="action"
@@ -158,18 +158,20 @@ export default {
   ...mapState("acrou/view", ["mode"]),
 
   filteredFiles() {
-    if (!this.keyword) return this.files;
+  if (!this.keyword) return this.files;
 
-    return this.files.filter(file =>
-      file.name
-        .toLowerCase()
-        .includes(this.keyword.toLowerCase())
-    );
-  },
+  return this.files.filter(file =>
+    (file.name || "")
+      .toLowerCase()
+      .includes(this.keyword.toLowerCase())
+  );
+},
 
-  images() {
-    return this.files.filter((file) => file.mimeType.startsWith("image/"));
-  },
+images() {
+  return this.files.filter(
+    (file) => file.mimeType && file.mimeType.startsWith("image/")
+  );
+},
 
   renderHeadMD() {
     return window.themeOptions.render.head_md || false;
