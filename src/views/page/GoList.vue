@@ -7,17 +7,8 @@
     ></headmd>
     <bread-crumb ref="breadcrumb"></bread-crumb>
     <div class="golist" v-loading="loading">
-<div class="field mb-4">
-  <div class="control">
-    <input
-      class="input"
-      v-model="keyword"
-      placeholder="🔍 Tìm file..."
-    />
-  </div>
-</div>
       <list-view
-        :data="filteredFiles"
+        :data="files"
         v-if="mode === 'list'"
         :icons="getIcon"
         :action="action"
@@ -25,7 +16,7 @@
       />
       <grid-view
         class="g2-content"
-        :data="filteredFiles"
+        :data="files"
         v-if="mode !== 'list'"
         :getIcon="getIcon"
         :action="action"
@@ -109,7 +100,6 @@ export default {
         page_index: 0,
       },
       files: [],
-      keyword: "",
       viewer: false,
       icon: {
         "application/vnd.google-apps.folder": "icon-folder",
@@ -155,32 +145,17 @@ export default {
     };
   },
   computed: {
-  ...mapState("acrou/view", ["mode"]),
-
-  filteredFiles() {
-  if (!this.keyword) return this.files;
-
-  return this.files.filter(file =>
-    (file.name || "")
-      .toLowerCase()
-      .includes(this.keyword.toLowerCase())
-  );
-},
-
-images() {
-  return this.files.filter(
-    (file) => file.mimeType && file.mimeType.startsWith("image/")
-  );
-},
-
-  renderHeadMD() {
-    return window.themeOptions.render.head_md || false;
+    ...mapState("acrou/view", ["mode"]),
+    images() {
+      return this.files.filter((file) => file.mimeType.startsWith("image/"));
+    },
+    renderHeadMD() {
+      return window.themeOptions.render.head_md || false;
+    },
+    renderReadMeMD() {
+      return window.themeOptions.render.readme_md || false;
+    },
   },
-
-  renderReadMeMD() {
-    return window.themeOptions.render.readme_md || false;
-  },
-},
   created() {
     this.render();
   },
@@ -333,7 +308,6 @@ images() {
       this.target(file, target);
     },
     target(file, target) {
-
       let path = file.path;
       if (target === "_blank") {
         window.open(path);
