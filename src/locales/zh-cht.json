@@ -1,61 +1,61 @@
 {
-  "_name": "繁体中文",
-  "languages": "選擇語言",
-  "index": "首頁",
-  "folder": "文件夾",
+  "_name": "日本語",
+  "languages": "言語選択",
+  "index": "ホーム",
+  "folder": "フォルダ",
   "notify": {
-    "title": "提示"
+    "title": "お知らせ"
   },
   "copy": {
-    "text": "復制",
-    "success": "復制成功",
-    "error": "復制失敗"
+    "text": "コピー",
+    "success": "コピーしました",
+    "error": "コピーに失敗しました"
   },
   "list": {
     "view": {
-      "gridMode": "網格視圖",
-      "listMode": "列表視圖"
+      "gridMode": "グリッド表示",
+      "listMode": "リスト表示"
     },
-    "auth": "目錄加密，請輸入密碼",
+    "auth": "このフォルダは保護されています。パスワードを入力してください",
     "title": {
-      "file": "文件",
-      "moditime": "修改時間",
-      "size": "大小",
+      "file": "ファイル",
+      "moditime": "更新日時",
+      "size": "サイズ",
       "operation": "操作"
     },
-    "loading": "加載中...",
+    "loading": "読み込み中...",
     "opt": {
-      "copy": "復制鏈接",
-      "newTab": "打開新的標簽頁",
-      "download": "下載"
+      "copy": "リンクをコピー",
+      "newTab": "新しいタブで開く",
+      "download": "ダウンロード"
     },
-    "total": "共",
-    "item": "項"
+    "total": "合計",
+    "item": "件"
   },
   "search": {
-    "placeholder": "搜索..."
+    "placeholder": "検索..."
   },
   "page": {
     "video": {
-      "play": "播放",
-      "download": "下載",
-      "link": "下載地址"
+      "play": "再生",
+      "download": "ダウンロード",
+      "link": "ダウンロードリンク"
     },
     "text": {
-      "loading": "加載中..."
+      "loading": "読み込み中..."
     }
   },
   "setting": {
     "clear": {
-      "text": "清理緩存",
-      "success": "緩存清理成功"
+      "text": "キャッシュを削除",
+      "success": "キャッシュを削除しました"
     }
   },
   "checkVersion": {
-    "tips": "檢測到有新版本，<a href='${url}'>前往GitHub</a>"
+    "tips": "新しいバージョンが見つかりました。<a href='${url}'>GitHubへ移動</a>"
   },
   "error": {
-    "shortcut_not_down": "快捷方式無法打開/下載",
-    "401": "未授權，請登錄"
+    "shortcut_not_down": "ショートカットは開くこともダウンロードすることもできません",
+    "401": "認証されていません。ログインしてください"
   }
 }
