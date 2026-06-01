@@ -1,61 +1,61 @@
 {
-  "_name": "English",
-  "languages": "Languages",
-  "index": "Home",
-  "folder": "Folder",
+  "_name": "Tiếng Việt",
+  "languages": "Ngôn ngữ",
+  "index": "Trang chủ",
+  "folder": "Thư mục",
   "notify": {
-    "title": "Notify"
+    "title": "Thông báo"
   },
   "copy": {
-    "text": "Copy",
-    "success": "Copy successful",
-    "error": "Copy failed"
+    "text": "Sao chép",
+    "success": "Sao chép thành công",
+    "error": "Sao chép thất bại"
   },
   "list": {
     "view": {
-      "gridMode": "Grid view",
-      "listMode": "List view"
+      "gridMode": "Chế độ lưới",
+      "listMode": "Chế độ danh sách"
     },
-    "auth": "Directory encryption, please enter password",
+    "auth": "Thư mục được bảo vệ, vui lòng nhập mật khẩu",
     "title": {
-      "file": "File",
-      "moditime": "Modified Time",
-      "size": "Size",
-      "operation": "Actions"
+      "file": "Tên",
+      "moditime": "Ngày sửa đổi",
+      "size": "Dung lượng",
+      "operation": "Thao tác"
     },
-    "loading": "Loading...",
+    "loading": "Đang tải...",
     "opt": {
-      "copy": "Copy link",
-      "newTab": "Open a new tab",
-      "download": "Download"
+      "copy": "Sao chép liên kết",
+      "newTab": "Mở trong tab mới",
+      "download": "Tải xuống"
     },
-    "total": "Total",
-    "item": "item"
+    "total": "Tổng cộng",
+    "item": "mục"
   },
   "search": {
-    "placeholder": "Search resources..."
+    "placeholder": "Tìm kiếm tệp..."
   },
   "page": {
     "video": {
-      "play": "Play",
-      "download": "Download",
-      "link": "Download link"
+      "play": "Phát",
+      "download": "Tải xuống",
+      "link": "Liên kết tải xuống"
     },
     "text": {
-      "loading": "Loading..."
+      "loading": "Đang tải..."
     }
   },
   "setting": {
     "clear": {
-      "text": "Clean cache",
-      "success": "Cache cleanup successful"
+      "text": "Xóa bộ nhớ đệm",
+      "success": "Đã xóa bộ nhớ đệm thành công"
     }
   },
   "checkVersion": {
-    "tips": "New version detected, <a href='${url}'>Go to GitHub</a>"
+    "tips": "Đã phát hiện phiên bản mới, <a href='${url}'>Truy cập GitHub</a>"
   },
   "error": {
-    "shortcut_not_down": "Shortcut can't open/download",
-    "401": "Unauthorized, please login"
+    "shortcut_not_down": "Không thể mở hoặc tải xuống lối tắt",
+    "401": "Chưa đăng nhập hoặc không có quyền truy cập"
   }
 }
