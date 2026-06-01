@@ -134,17 +134,16 @@ export default {
       this.isActive = !this.isActive;
     },
   },
-  computed: {
-    getCurrGD() {
-      return this.gds.filter((item) => item.name !== this.currgd.name);
-    },
-    showSearch() {
-      // 文件夹不支持搜索
-      return window.MODEL ? window.MODEL.root_type < 2 : true
-    },
+computed: {
+  getCurrGD() {
+    return this.gds.filter((item) => item.name !== this.currgd.name);
   },
-  watch: {
-    "$route.params.id": "chooseGD",
+  showSearch() {
+    return true;
   },
+},
+watch: {
+  "$route.params.id": "chooseGD",
+},
 };
 </script>
