@@ -42,7 +42,10 @@
 
         <div class="navbar-end">
           <!-- is-hidden-desktop -->
-          <div class="navbar-item" v-show="showSearch">
+         <div class="navbar-item">
+  <div style="color:red;font-size:30px">
+    SEARCH TEST
+  </div>
             <div class="field is-grouped">
               <p class="control has-icons-left is-dark" style="width:100%;">
                 <input
