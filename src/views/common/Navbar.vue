@@ -40,34 +40,35 @@
           </div>
         </div>
 
- <div class="navbar-end">
-  <div class="navbar-item search-box">
-    <div class="field" style="width:100%;">
-      <p class="control has-icons-left" style="width:100%;">
-        <input
-          class="input is-rounded search-input"
-          @keyup.enter="query"
-          v-model="param"
-          type="search"
-          :placeholder="$t('search.placeholder')"
-        />
-        <span class="icon is-small is-left">
-          <i class="fas fa-search"></i>
-        </span>
-      </p>
-    </div>
-  </div>
-
-  <header-locales />
-  <header-setting />
-
-  <a
-    class="navbar-item is-hidden-desktop"
-    @click.stop="$refs.viewMode.toggleMode"
-  >
-    <view-mode ref="viewMode" />
-  </a>
-</div>
+        <div class="navbar-end">
+          <!-- is-hidden-desktop -->
+          <div class="navbar-item" v-show="showSearch">
+            <div class="field is-grouped">
+              <p class="control has-icons-left is-dark" style="width:100%;">
+                <input
+                  class="input is-rounded search-input"
+                  @keyup.enter="query"
+                  v-model="param"
+                  type="search"
+                  :placeholder="$t('search.placeholder')"
+                  style="background-color: rgb(68, 66, 66);border-color: #272727;"
+                />
+                <span class="icon is-small is-left" style="padding:0 5px;">
+                  <!-- <i class="fas fa-search"></i> -->
+                  <img :src="eyes" />
+                </span>
+              </p>
+            </div>
+          </div>
+          <header-locales />
+          <header-setting />
+          <a
+            class="navbar-item is-hidden-desktop"
+            @click.stop="$refs.viewMode.toggleMode"
+          >
+            <view-mode ref="viewMode" />
+          </a>
+        </div>
       </div>
     </div>
   </nav>
@@ -133,44 +134,17 @@ export default {
       this.isActive = !this.isActive;
     },
   },
-computed: {
-  getCurrGD() {
-    return this.gds.filter((item) => item.name !== this.currgd.name);
+  computed: {
+    getCurrGD() {
+      return this.gds.filter((item) => item.name !== this.currgd.name);
+    },
+    showSearch() {
+      // 文件夹不支持搜索
+      return window.MODEL ? window.MODEL.root_type < 2 : true
+    },
   },
-  showSearch() {
-    return true;
+  watch: {
+    "$route.params.id": "chooseGD",
   },
-},
-watch: {
-  "$route.params.id": "chooseGD",
-},
 };
 </script>
-<style scoped>
-.search-box {
-  margin-left: auto;
-  width: 360px;
-}
-
-.search-input {
-  background: #3a3a3a !important;
-  border: 1px solid #555 !important;
-  color: #fff !important;
-  box-shadow: none !important;
-}
-
-.search-input::placeholder {
-  color: #bdbdbd !important;
-}
-
-.search-box .icon img {
-  width: 18px;
-  height: 18px;
-}
-
-@media screen and (max-width: 1024px) {
-  .search-box {
-    width: 220px;
-  }
-}
-</style>
