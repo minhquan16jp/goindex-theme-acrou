@@ -28,15 +28,34 @@
             v-if="gds.length > 0 && getCurrGD.length > 0"
           >
             <a class="navbar-link">{{ this.currgd.name }}</a>
-            <div class="navbar-dropdown is-boxed">
-              <a
-                class="navbar-item"
-                @click="changeItem(item)"
-                v-for="(item, index) in getCurrGD"
-                v-bind:key="index"
-                >{{ item.name }}</a
-              >
-            </div>
+           <div class="navbar-dropdown is-boxed">
+
+  <template
+    v-for="(items, groupName) in groupedGD"
+    :key="groupName"
+  >
+
+    <div
+      class="navbar-item has-text-weight-bold"
+      style="background:#f5f5f5"
+    >
+      {{ groupName }}
+    </div>
+
+    <a
+      class="navbar-item"
+      v-for="item in items"
+      :key="item.id"
+      @click="changeItem(item)"
+    >
+      {{ item.shortName }}
+    </a>
+
+    <hr class="navbar-divider">
+
+  </template>
+
+</div>
           </div>
         </div>
 
@@ -135,10 +154,44 @@ export default {
     },
   },
   computed: {
-    getCurrGD() {
-      return this.gds.filter((item) => item.name !== this.currgd.name);
-    },
-    showSearch() {
+  groupedGD() {
+    const groups = {};
+
+    this.gds.forEach(item => {
+      const parts = item.name.split('|');
+
+      if (parts.length >= 2) {
+        const group = parts[0];
+        const title = parts.slice(1).join('|');
+
+        if (!groups[group]) {
+          groups[group] = [];
+        }
+
+        groups[group].push({
+          ...item,
+          shortName: title
+        });
+      } else {
+        if (!groups["KHÁC"]) {
+          groups["KHÁC"] = [];
+        }
+
+        groups["KHÁC"].push({
+          ...item,
+          shortName: item.name
+        });
+      }
+    });
+
+    return groups;
+  },
+
+  getCurrGD() {
+    return this.gds.filter((item) => item.name !== this.currgd.name);
+  },
+
+  showSearch() {
       // 文件夹不支持搜索
       return window.MODEL ? window.MODEL.root_type < 2 : true
     },
