@@ -186,7 +186,7 @@ export default {
   padding: 14px;
   font-size: 11px;
   font-weight: 800;
-  color: #94a3b8 !important; /* Màu chữ tiêu đề sáng rõ */
+  color: #94a3b8 !important;
   text-transform: uppercase;
   letter-spacing: 0.8px;
   border-bottom: 2px solid #334155 !important;
@@ -198,7 +198,7 @@ export default {
 }
 
 .table-row:hover {
-  background-color: #334155 !important; /* Sáng dòng lên khi di chuột */
+  background-color: #334155 !important;
 }
 
 .table-row td {
@@ -221,7 +221,7 @@ export default {
   color: #64748b !important;
 }
 
-/* Tên File/Folder - ĐẶC BIỆT CẢI TIẾN MÀU TRẮNG SÁNG */
+/* Tên File/Folder */
 .file-item-group {
   display: inline-flex;
   align-items: center;
@@ -237,12 +237,12 @@ export default {
 .file-name-text {
   font-size: 14px;
   font-weight: 600;
-  color: #f8fafc !important; /* TRẮNG TÍNH SÁNG NÉT, RÕ RÀNG 100% */
+  color: #f8fafc !important; /* TRẮNG NÉT 100% */
   transition: color 0.15s ease;
 }
 
 .table-row:hover .file-name-text {
-  color: #38bdf8 !important; /* Xanh Neon sáng khi hover */
+  color: #38bdf8 !important;
 }
 
 /* Cột Trạng Thái */
@@ -264,7 +264,6 @@ export default {
   outline: none;
 }
 
-/* Nút Chưa Đánh Dấu (Dark UI) */
 .btn-unmarked {
   background-color: #0f172a !important;
   color: #94a3b8 !important;
@@ -277,7 +276,6 @@ export default {
   border-color: #475569 !important;
 }
 
-/* Nút Đã Học (Dark Neon Green) */
 .btn-marked {
   background-color: rgba(16, 185, 129, 0.2) !important;
   color: #34d399 !important;

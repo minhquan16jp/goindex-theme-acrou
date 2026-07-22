@@ -1,5 +1,5 @@
 <template>
-  <div class="main-container dark-theme">
+  <div class="main-container">
     <headmd
       :option="headmd"
       v-if="renderHeadMD && headmd.display"
@@ -428,9 +428,9 @@ export default {
 
 /* Card Bảng - Premium Dark Card */
 .golist-card {
-  background: #1e293b !important; /* Xám Sapphire tối */
+  background: #1e293b !important;
   border-radius: 16px;
-  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5), 0 8px 10px -6px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5);
   border: 1px solid #334155;
   padding: 12px 20px;
   margin-top: 16px;
