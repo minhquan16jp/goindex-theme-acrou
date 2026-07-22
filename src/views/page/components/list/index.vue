@@ -16,16 +16,16 @@
         </th>
       </tr>
     </thead>
-    <tbody>
+<tbody>
       <tr 
         v-for="(file, index) in data" 
         v-bind:key="index"
         :class="{ 'row-watched': isMarked(file.name) }"
         class="table-row"
       >
-        <!-- Cột 1: Tên File/Folder -->
+        <!-- Cột 1: Tên File/Folder (Đã sửa bỏ .self để click vào chữ hay icon đều mở được) -->
         <td
-          @click.self="
+          @click="
             action(
               file,
               file.mimeType !== 'application/vnd.google-apps.folder'
@@ -35,6 +35,7 @@
           "
           :title="file.name"
           class="name-cell"
+          style="cursor: pointer;"
         >
           <div class="file-item-group">
             <svg class="iconfont file-icon" aria-hidden="true">
