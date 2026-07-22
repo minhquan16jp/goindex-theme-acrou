@@ -27,36 +27,5 @@
   <body>
     <div id="app"></div>
     <script src="/app.js"></script>
-    
-    <!-- ĐOẠN MÃ LƯU LỊCH SỬ BẮT ĐẦU TỪ ĐÂY -->
-    <script>
-    try {
-        document.addEventListener('click', function(e) {
-            let link = e.target.closest('a');
-            if (link && link.href) {
-                let path = new URL(link.href).pathname;
-                if (path !== '/' && !link.href.includes('?a=')) { 
-                    let history = JSON.parse(localStorage.getItem('watched_history') || '{}');
-                    history[path] = true;
-                    localStorage.setItem('watched_history', JSON.stringify(history));
-                }
-            }
-        });
-
-        setInterval(() => {
-            let history = JSON.parse(localStorage.getItem('watched_history') || '{}');
-            document.querySelectorAll('a').forEach(link => {
-                if (link.href) {
-                    let path = new URL(link.href).pathname;
-                    if (history[path]) {
-                        link.style.opacity = '0.4'; 
-                    }
-                }
-            });
-        }, 1000);
-    } catch(e) {}
-    </script>
-    <!-- ĐOẠN MÃ LƯU LỊCH SỬ KẾT THÚC -->
-
   </body>
 </html>
