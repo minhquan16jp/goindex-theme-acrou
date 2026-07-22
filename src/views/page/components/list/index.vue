@@ -22,6 +22,7 @@
         v-bind:key="index"
         :style="{ opacity: isMarked(file.name) ? '0.45' : '1' }"
       >
+        <!-- Cột 1: Tên file/folder + Nút Đánh Dấu -->
         <td
           @click.self="
             action(
@@ -32,11 +33,13 @@
             )
           "
           :title="file.name"
+          style="vertical-align: middle;"
         >
-          <svg class="iconfont" aria-hidden="true">
+          <svg class="iconfont" aria-hidden="true" style="margin-right: 5px;">
             <use :xlink:href="icons(file.mimeType)" />
           </svg>
-          {{ file.name }}
+
+          <span>{{ file.name }}</span>
           
           <!-- Nút Đánh Dấu / Bỏ Đánh Dấu -->
           <button 
@@ -49,6 +52,7 @@
               borderRadius: '4px',
               border: '1px solid',
               cursor: 'pointer',
+              verticalAlign: 'middle',
               backgroundColor: isMarked(file.name) ? '#e8f5e9' : '#f5f5f5',
               color: isMarked(file.name) ? '#2e7d32' : '#666',
               borderColor: isMarked(file.name) ? '#81c784' : '#ccc'
@@ -63,19 +67,27 @@
             v-html="file.description"
           ></span>
         </td>
-        <td class="is-hidden-mobile is-hidden-touch">
+
+        <!-- Cột 2: Ngày sửa đổi -->
+        <td class="is-hidden-mobile is-hidden-touch" style="vertical-align: middle;">
           {{ file.modifiedTime }}
         </td>
-        <td class="is-hidden-mobile is-hidden-touch">{{ file.size }}</td>
-        <td class="is-hidden-mobile is-hidden-touch">
-          <span class="icon" @click.stop="action(file,'copy')">
+
+        <!-- Cột 3: Kích thước -->
+        <td class="is-hidden-mobile is-hidden-touch" style="vertical-align: middle;">
+          {{ file.size }}
+        </td>
+
+        <!-- Cột 4: Các nút thao tác cũ (Copy, Tab mới, Tải về) -->
+        <td class="is-hidden-mobile is-hidden-touch" style="vertical-align: middle;">
+          <span class="icon" @click.stop="action(file,'copy')" style="cursor: pointer; margin-right: 8px;">
             <i
               class="fa fa-copy faa-shake animated-hover"
               :title="$t('list.opt.copy')"
               aria-hidden="true"
             ></i>
           </span>
-          <span class="icon" @click.stop="action(file, '_blank')">
+          <span class="icon" @click.stop="action(file, '_blank')" style="cursor: pointer; margin-right: 8px;">
             <i
               class="fa fa-external-link faa-shake animated-hover"
               :title="$t('list.opt.newTab')"
@@ -86,6 +98,7 @@
             class="icon"
             @click.stop="action(file, 'down')"
             v-if="file.mimeType !== 'application/vnd.google-apps.folder'"
+            style="cursor: pointer;"
           >
             <i
               class="fa fa-download faa-shake animated-hover"
@@ -115,7 +128,6 @@ export default {
   },
   data() {
     return {
-      // Biến trigger để Vue nhận biết khi localStorage thay đổi
       markedStore: {}
     };
   },
@@ -167,7 +179,7 @@ export default {
           store[name] = true;
         }
         localStorage.setItem('minkuan_manual_marked', JSON.stringify(store));
-        this.markedStore = { ...store }; // Cập nhật lại state để Vue re-render ngay
+        this.markedStore = { ...store };
       } catch(e) {}
     }
   }
