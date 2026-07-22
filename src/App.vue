@@ -48,6 +48,7 @@ export default {
   },
 };
 </script>
+
 <style>
 /* ==========================================
    GLOBAL DARK MODE SYSTEM - MINKUAN THEME
@@ -61,27 +62,53 @@ html, body, #app, .el-container, .main-body {
   color-scheme: dark !important; /* Báo cho trình duyệt biết đây là Dark Site */
 }
 
-/* 2. Sửa Menu Dropdown sổ xuống (Trực tiếp Element UI gốc) */
+/* 2. SỬA TRIỆT ĐỂ CÁC BẢNG MENU DROPDOWN & CASCADER (Đè màu trắng) */
+.el-cascader__dropdown,
+.el-cascader-panel,
+.el-cascader-menu,
+.el-cascader-menu__list,
 .el-dropdown-menu,
-.el-popper,
-.el-cascader__dropdown {
-  background-color: #1e293b !important;
+.el-popper {
+  background-color: #1e293b !important; /* Xám Sapphire tối */
   border: 1px solid #334155 !important;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5) !important;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6) !important;
   border-radius: 12px !important;
-  padding: 6px !important;
 }
 
+/* Từng dòng mục nhỏ bên trong Menu Cascader */
+.el-cascader-node,
 .el-dropdown-menu__item {
-  color: #cbd5e1 !important;
-  border-radius: 8px !important;
-  margin: 2px 0 !important;
+  background-color: transparent !important;
+  color: #f8fafc !important; /* Màu chữ trắng sáng rõ nét */
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05) !important;
+  padding: 10px 16px !important;
+  transition: all 0.15s ease !important;
 }
 
-.el-dropdown-menu__item:hover,
-.el-dropdown-menu__item:focus {
-  background-color: #0284c7 !important;
+/* Hiệu ứng rê chuột vào mục menu */
+.el-cascader-node:hover,
+.el-cascader-node:focus,
+.el-cascader-node.is-selectable:hover,
+.el-dropdown-menu__item:hover {
+  background-color: #0284c7 !important; /* Đổi sang màu Xanh Cyan tươi */
   color: #ffffff !important;
+}
+
+/* Mục đang được chọn hiện tại */
+.el-cascader-node.is-active {
+  color: #38bdf8 !important;
+  font-weight: 700 !important;
+}
+
+/* Đường ranh giới giữa các cột Menu Cascader */
+.el-cascader-menu {
+  border-right: 1px solid #334155 !important;
+}
+
+/* Tam giác chỉ mũi tên nhỏ trên cùng của Menu */
+.el-popper[x-placement^="bottom"] .popper__arrow,
+.el-popper[x-placement^="bottom"] .popper__arrow::after {
+  border-bottom-color: #1e293b !important;
 }
 
 /* 3. Đường dẫn Breadcrumb */
