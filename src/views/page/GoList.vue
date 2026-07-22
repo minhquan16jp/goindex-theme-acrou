@@ -8,7 +8,7 @@
 
     <bread-crumb ref="breadcrumb"></bread-crumb>
 
-    <!-- Progress Card (Dark UI) -->
+    <!-- Progress Card (Thiết kế phong cách Modern LMS) -->
     <div class="progress-card" v-if="files.length > 0">
       <div class="progress-info">
         <div class="progress-text">
@@ -251,6 +251,7 @@ export default {
       var path = this.$route.path;
       if (!files) return [];
 
+      // Ẩn các file rác macOS và markdown tiêu đề
       let cleanFiles = files.filter((item) => {
         return !['.DS_Store', 'HEAD.md', 'README.md'].includes(item.name);
       });
@@ -426,24 +427,25 @@ export default {
   padding: 0 12px;
 }
 
-/* Card Bảng - Premium Dark Card */
+/* Card Container cho Bảng */
 .golist-card {
-  background: #1e293b !important;
+  background: #ffffff;
   border-radius: 16px;
-  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5);
-  border: 1px solid #334155;
+  box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.05), 0 0 1px 1px rgba(0, 0, 0, 0.02);
+  border: 1px solid rgba(226, 232, 240, 0.8);
   padding: 12px 20px;
   margin-top: 16px;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-/* Progress Card Dark UI */
+/* Progress Widget */
 .progress-card {
-  background: #1e293b !important;
-  border: 1px solid #334155;
+  background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+  border: 1px solid #e2e8f0;
   border-radius: 14px;
   padding: 16px 20px;
   margin-top: 14px;
-  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
 }
 
 .progress-info {
@@ -460,51 +462,45 @@ export default {
 }
 
 .progress-badge {
-  font-size: 11px;
+  font-size: 10px;
   font-weight: 800;
   letter-spacing: 0.5px;
-  background: rgba(16, 185, 129, 0.15);
-  color: #34d399;
-  padding: 4px 10px;
+  background: #ecfdf5;
+  color: #10b981;
+  padding: 3px 8px;
   border-radius: 6px;
-  border: 1px solid rgba(52, 211, 153, 0.3);
+  border: 1px solid #a7f3d0;
 }
 
 .progress-count {
   font-size: 13px;
-  color: #cbd5e1;
-}
-
-.progress-count strong {
-  color: #ffffff;
+  color: #475569;
 }
 
 .progress-percentage-text {
-  font-size: 18px;
+  font-size: 16px;
   font-weight: 800;
-  color: #34d399;
-  font-family: monospace;
+  color: #059669;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
 
 .progress-track {
   width: 100%;
   height: 8px;
-  background-color: #0f172a;
+  background-color: #e2e8f0;
   border-radius: 99px;
   overflow: hidden;
-  border: 1px solid #334155;
 }
 
 .progress-fill {
   height: 100%;
-  background: linear-gradient(90deg, #10b981 0%, #34d399 100%);
+  background: linear-gradient(90deg, #10b981 0%, #059669 100%);
   border-radius: 99px;
-  box-shadow: 0 0 12px rgba(52, 211, 153, 0.5);
-  transition: width 0.5s ease;
+  transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .custom-divider {
   margin: 24px 0;
-  opacity: 0.3;
+  opacity: 0.6;
 }
 </style>

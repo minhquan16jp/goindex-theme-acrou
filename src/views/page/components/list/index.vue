@@ -1,5 +1,5 @@
 <template>
-  <table class="dark-table">
+  <table class="custom-table">
     <thead>
       <tr>
         <th
@@ -174,75 +174,77 @@ export default {
 </script>
 
 <style scoped>
-.dark-table {
+.custom-table {
   width: 100%;
   border-collapse: separate;
   border-spacing: 0;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
 }
 
 /* Header Bảng */
-.dark-table th {
-  padding: 14px;
-  font-size: 11px;
-  font-weight: 800;
-  color: #94a3b8 !important;
+.custom-table th {
+  padding: 12px 14px;
+  font-size: 12px;
+  font-weight: 700;
+  color: #64748b;
   text-transform: uppercase;
-  letter-spacing: 0.8px;
-  border-bottom: 2px solid #334155 !important;
+  letter-spacing: 0.6px;
+  border-bottom: 2px solid #f1f5f9;
 }
 
 /* Các Dòng Bảng */
 .table-row {
-  transition: all 0.2s ease;
+  transition: all 0.18s ease-in-out;
 }
 
 .table-row:hover {
-  background-color: #334155 !important;
+  background-color: #f8fafc !important;
+  transform: translateY(-1px);
 }
 
 .table-row td {
-  padding: 16px 14px;
-  border-bottom: 1px solid #334155 !important;
+  padding: 14px;
+  border-bottom: 1px solid #f1f5f9;
   vertical-align: middle;
 }
 
 .table-row:last-child td {
-  border-bottom: none !important;
+  border-bottom: none;
 }
 
 /* Dòng Đã Học */
 .row-watched {
-  opacity: 0.4;
+  opacity: 0.5;
+  background-color: #fafafa;
 }
 
 .row-watched .file-name-text {
   text-decoration: line-through;
-  color: #64748b !important;
+  color: #94a3b8;
 }
 
 /* Tên File/Folder */
 .file-item-group {
   display: inline-flex;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
 }
 
 .file-icon {
-  width: 24px;
-  height: 24px;
+  width: 22px;
+  height: 22px;
   flex-shrink: 0;
 }
 
 .file-name-text {
   font-size: 14px;
-  font-weight: 600;
-  color: #f8fafc !important; /* TRẮNG NÉT 100% */
+  font-weight: 500;
+  color: #1e293b;
   transition: color 0.15s ease;
 }
 
 .table-row:hover .file-name-text {
-  color: #38bdf8 !important;
+  color: #0284c7;
 }
 
 /* Cột Trạng Thái */
@@ -254,43 +256,43 @@ export default {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  padding: 6px 14px;
+  padding: 5px 14px;
   font-size: 12px;
-  font-weight: 700;
+  font-weight: 600;
   border-radius: 20px;
   border: 1px solid transparent;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
   outline: none;
 }
 
 .btn-unmarked {
-  background-color: #0f172a !important;
-  color: #94a3b8 !important;
-  border-color: #334155 !important;
+  background-color: #f1f5f9;
+  color: #64748b;
+  border-color: #e2e8f0;
 }
 
 .btn-unmarked:hover {
-  background-color: #334155 !important;
-  color: #ffffff !important;
-  border-color: #475569 !important;
+  background-color: #e2e8f0;
+  color: #334155;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.05);
 }
 
 .btn-marked {
-  background-color: rgba(16, 185, 129, 0.2) !important;
-  color: #34d399 !important;
-  border-color: rgba(52, 211, 153, 0.4) !important;
-  box-shadow: 0 0 10px rgba(52, 211, 153, 0.2);
+  background-color: #ecfdf5;
+  color: #059669;
+  border-color: #a7f3d0;
 }
 
 .btn-marked:hover {
-  background-color: rgba(16, 185, 129, 0.3) !important;
+  background-color: #d1fae5;
+  box-shadow: 0 2px 6px rgba(16, 185, 129, 0.15);
 }
 
 .btn-inner {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 5px;
 }
 
 .icon-svg {
@@ -302,7 +304,7 @@ export default {
   width: 6px;
   height: 6px;
   border-radius: 50%;
-  background-color: #64748b;
+  background-color: #94a3b8;
 }
 
 /* Dung Lượng */
@@ -312,7 +314,7 @@ export default {
 
 .size-badge {
   font-size: 12px;
-  color: #94a3b8 !important;
+  color: #64748b;
   font-family: monospace;
 }
 
@@ -324,35 +326,34 @@ export default {
 .action-btn-group {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
 }
 
 .action-btn {
-  width: 32px;
-  height: 32px;
+  width: 30px;
+  height: 30px;
   border-radius: 8px;
-  border: 1px solid #334155 !important;
-  background-color: #0f172a !important;
-  color: #cbd5e1 !important;
+  border: 1px solid #e2e8f0;
+  background-color: #ffffff;
+  color: #64748b;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  font-size: 13px;
-  transition: all 0.2s ease;
+  font-size: 12px;
+  transition: all 0.15s ease;
 }
 
 .action-btn:hover {
-  background-color: #38bdf8 !important;
-  color: #0f172a !important;
-  border-color: #38bdf8 !important;
-  box-shadow: 0 0 12px rgba(56, 189, 248, 0.4);
+  background-color: #0284c7;
+  color: #ffffff;
+  border-color: #0284c7;
+  transform: translateY(-1px);
 }
 
 .download-btn:hover {
-  background-color: #34d399 !important;
-  color: #0f172a !important;
-  border-color: #34d399 !important;
-  box-shadow: 0 0 12px rgba(52, 211, 153, 0.4);
+  background-color: #10b981;
+  border-color: #10b981;
 }
 </style>
+
