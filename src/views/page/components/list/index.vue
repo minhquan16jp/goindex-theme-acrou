@@ -1,5 +1,5 @@
 <template>
-  <table class="table is-hoverable">
+  <table class="custom-table">
     <thead>
       <tr>
         <th
@@ -21,8 +21,9 @@
         v-for="(file, index) in data" 
         v-bind:key="index"
         :class="{ 'row-watched': isMarked(file.name) }"
+        class="table-row"
       >
-        <!-- Cột 1: Tên file / thư mục -->
+        <!-- Cột 1: Tên File/Folder -->
         <td
           @click.self="
             action(
@@ -33,13 +34,13 @@
             )
           "
           :title="file.name"
-          style="vertical-align: middle;"
+          class="name-cell"
         >
-          <div class="file-name-wrapper">
-            <svg class="iconfont" aria-hidden="true" style="margin-right: 8px;">
+          <div class="file-item-group">
+            <svg class="iconfont file-icon" aria-hidden="true">
               <use :xlink:href="icons(file.mimeType)" />
             </svg>
-            <span class="file-title">{{ file.name }}</span>
+            <span class="file-name-text">{{ file.name }}</span>
           </div>
 
           <span
@@ -49,59 +50,50 @@
           ></span>
         </td>
 
-        <!-- Cột 2: Cột Trạng thái (Thay thế Ngày sửa đổi) -->
-        <td style="vertical-align: middle; text-align: center; width: 140px;">
+        <!-- Cột 2: Trạng Thái Học Tập -->
+        <td class="status-cell">
           <button 
             type="button"
-            class="status-btn"
+            class="modern-status-btn"
             :class="isMarked(file.name) ? 'btn-marked' : 'btn-unmarked'"
             @click.stop="toggleMark(file.name)"
           >
-            <span v-if="isMarked(file.name)" class="btn-content">
-              <svg class="check-icon" viewBox="0 0 20 20" fill="currentColor">
+            <span v-if="isMarked(file.name)" class="btn-inner">
+              <svg class="icon-svg" viewBox="0 0 20 20" fill="currentColor">
                 <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
               </svg>
               Đã học
             </span>
-            <span v-else class="btn-content">
-              <span class="dot-icon"></span>
+            <span v-else class="btn-inner">
+              <span class="unmarked-dot"></span>
               Đánh dấu
             </span>
           </button>
         </td>
 
-        <!-- Cột 3: Dung lượng -->
-        <td class="is-hidden-mobile is-hidden-touch" style="vertical-align: middle;">
-          {{ file.size }}
+        <!-- Cột 3: Dung Lượng -->
+        <td class="is-hidden-mobile is-hidden-touch size-cell">
+          <span class="size-badge">{{ file.size }}</span>
         </td>
 
-        <!-- Cột 4: Thao tác (Copy, Tab mới, Tải về) -->
-        <td class="is-hidden-mobile is-hidden-touch" style="vertical-align: middle;">
-          <span class="icon action-icon" @click.stop="action(file,'copy')">
-            <i
-              class="fa fa-copy faa-shake animated-hover"
-              :title="$t('list.opt.copy')"
-              aria-hidden="true"
-            ></i>
-          </span>
-          <span class="icon action-icon" @click.stop="action(file, '_blank')">
-            <i
-              class="fa fa-external-link faa-shake animated-hover"
-              :title="$t('list.opt.newTab')"
-              aria-hidden="true"
-            ></i>
-          </span>
-          <span
-            class="icon action-icon"
-            @click.stop="action(file, 'down')"
-            v-if="file.mimeType !== 'application/vnd.google-apps.folder'"
-          >
-            <i
-              class="fa fa-download faa-shake animated-hover"
-              aria-hidden="true"
+        <!-- Cột 4: Nút Thao Tác -->
+        <td class="is-hidden-mobile is-hidden-touch action-cell">
+          <div class="action-btn-group">
+            <button class="action-btn" @click.stop="action(file,'copy')" :title="$t('list.opt.copy')">
+              <i class="fa fa-copy"></i>
+            </button>
+            <button class="action-btn" @click.stop="action(file, '_blank')" :title="$t('list.opt.newTab')">
+              <i class="fa fa-external-link"></i>
+            </button>
+            <button 
+              class="action-btn download-btn" 
+              @click.stop="action(file, 'down')"
+              v-if="file.mimeType !== 'application/vnd.google-apps.folder'"
               :title="$t('list.opt.download')"
-            ></i>
-          </span>
+            >
+              <i class="fa fa-download"></i>
+            </button>
+          </div>
         </td>
       </tr>
     </tbody>
@@ -135,17 +127,17 @@ export default {
       return [
         { name: this.$t("list.title.file"), style: "" },
         {
-          name: "Trạng thái", // Thay đổi tên cột
+          name: "Trạng thái",
           style: "width: 140px; text-align: center;",
         },
         {
           name: this.$t("list.title.size"),
-          style: "width: 12%",
+          style: "width: 12%; text-align: right;",
           class: "is-hidden-mobile is-hidden-touch",
         },
         {
           name: this.$t("list.title.operation"),
-          style: "width: 14%",
+          style: "width: 14%; text-align: center;",
           class: "is-hidden-mobile is-hidden-touch",
         },
       ];
@@ -182,52 +174,110 @@ export default {
 </script>
 
 <style scoped>
-/* Định dạng dòng đã học */
+.custom-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+}
+
+/* Header Bảng */
+.custom-table th {
+  padding: 12px 14px;
+  font-size: 12px;
+  font-weight: 700;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  border-bottom: 2px solid #f1f5f9;
+}
+
+/* Các Dòng Bảng */
+.table-row {
+  transition: all 0.18s ease-in-out;
+}
+
+.table-row:hover {
+  background-color: #f8fafc !important;
+  transform: translateY(-1px);
+}
+
+.table-row td {
+  padding: 14px;
+  border-bottom: 1px solid #f1f5f9;
+  vertical-align: middle;
+}
+
+.table-row:last-child td {
+  border-bottom: none;
+}
+
+/* Dòng Đã Học */
 .row-watched {
-  opacity: 0.55;
+  opacity: 0.5;
   background-color: #fafafa;
 }
 
-.file-name-wrapper {
+.row-watched .file-name-text {
+  text-decoration: line-through;
+  color: #94a3b8;
+}
+
+/* Tên File/Folder */
+.file-item-group {
   display: inline-flex;
   align-items: center;
+  gap: 10px;
 }
 
-.file-title {
+.file-icon {
+  width: 22px;
+  height: 22px;
+  flex-shrink: 0;
+}
+
+.file-name-text {
+  font-size: 14px;
   font-weight: 500;
-  color: #2c3e50;
+  color: #1e293b;
+  transition: color 0.15s ease;
 }
 
-/* Nút bấm thiết kế hiện đại (Pill Badge) */
-.status-btn {
+.table-row:hover .file-name-text {
+  color: #0284c7;
+}
+
+/* Cột Trạng Thái */
+.status-cell {
+  text-align: center;
+}
+
+.modern-status-btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  padding: 4px 12px;
+  padding: 5px 14px;
   font-size: 12px;
   font-weight: 600;
   border-radius: 20px;
   border: 1px solid transparent;
   cursor: pointer;
-  transition: all 0.2s ease-in-out;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
   outline: none;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
 }
 
-/* Trạng thái chưa đánh dấu */
 .btn-unmarked {
-  background-color: #f3f4f6;
-  color: #6b7280;
-  border-color: #e5e7eb;
+  background-color: #f1f5f9;
+  color: #64748b;
+  border-color: #e2e8f0;
 }
 
 .btn-unmarked:hover {
-  background-color: #e5e7eb;
-  color: #374151;
-  transform: translateY(-1px);
+  background-color: #e2e8f0;
+  color: #334155;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.05);
 }
 
-/* Trạng thái đã đánh dấu */
 .btn-marked {
   background-color: #ecfdf5;
   color: #059669;
@@ -236,35 +286,73 @@ export default {
 
 .btn-marked:hover {
   background-color: #d1fae5;
-  transform: translateY(-1px);
+  box-shadow: 0 2px 6px rgba(16, 185, 129, 0.15);
 }
 
-.btn-content {
+.btn-inner {
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 5px;
 }
 
-.check-icon {
+.icon-svg {
   width: 14px;
   height: 14px;
 }
 
-.dot-icon {
+.unmarked-dot {
   width: 6px;
   height: 6px;
   border-radius: 50%;
-  background-color: #9ca3af;
-  display: inline-block;
+  background-color: #94a3b8;
 }
 
-.action-icon {
+/* Dung Lượng */
+.size-cell {
+  text-align: right;
+}
+
+.size-badge {
+  font-size: 12px;
+  color: #64748b;
+  font-family: monospace;
+}
+
+/* Thao Tác */
+.action-cell {
+  text-align: center;
+}
+
+.action-btn-group {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.action-btn {
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+  background-color: #ffffff;
+  color: #64748b;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   cursor: pointer;
-  margin-right: 8px;
-  transition: color 0.15s ease;
+  font-size: 12px;
+  transition: all 0.15s ease;
 }
 
-.action-icon:hover {
-  color: #3273dc;
+.action-btn:hover {
+  background-color: #0284c7;
+  color: #ffffff;
+  border-color: #0284c7;
+  transform: translateY(-1px);
+}
+
+.download-btn:hover {
+  background-color: #10b981;
+  border-color: #10b981;
 }
 </style>

@@ -1,12 +1,29 @@
 <template>
-  <div>
+  <div class="main-container">
     <headmd
       :option="headmd"
       v-if="renderHeadMD && headmd.display"
-      style="margin:1rem 0;"
+      style="margin: 1rem 0;"
     ></headmd>
+
     <bread-crumb ref="breadcrumb"></bread-crumb>
-    <div class="golist" v-loading="loading">
+
+    <!-- Progress Card (Thiết kế phong cách Modern LMS) -->
+    <div class="progress-card" v-if="files.length > 0">
+      <div class="progress-info">
+        <div class="progress-text">
+          <span class="progress-badge">TIẾN ĐỘ HỌC TẬP</span>
+          <span class="progress-count">Đã hoàn thành <strong>{{ markedCount }}</strong> / {{ files.length }} bài</span>
+        </div>
+        <div class="progress-percentage-text">{{ progressPercentage }}%</div>
+      </div>
+      <div class="progress-track">
+        <div class="progress-fill" :style="{ width: progressPercentage + '%' }"></div>
+      </div>
+    </div>
+
+    <!-- Main List Card Container -->
+    <div class="golist-card" v-loading="loading">
       <list-view
         :data="files"
         v-if="mode === 'list'"
@@ -36,12 +53,14 @@
         class="has-text-centered no-content"
       ></div>
     </div>
+
     <div
-      class="is-divider"
+      class="is-divider custom-divider"
       :data-content="
         $t('list.total') + ' ' + files.length + ' ' + $t('list.item')
       "
     ></div>
+
     <readmemd
       :option="readmemd"
       v-if="renderReadMeMD && readmemd.display"
@@ -81,6 +100,7 @@ import ListView from "./components/list";
 import GridView from "./components/grid";
 import Markdown from "../common/Markdown";
 import InfiniteLoading from "vue-infinite-loading";
+
 export default {
   name: "GoList",
   components: {
@@ -155,6 +175,18 @@ export default {
     renderReadMeMD() {
       return window.themeOptions.render.readme_md || false;
     },
+    markedCount() {
+      try {
+        let store = JSON.parse(localStorage.getItem('minkuan_manual_marked') || '{}');
+        return this.files.filter(f => !!store[f.name]).length;
+      } catch(e) {
+        return 0;
+      }
+    },
+    progressPercentage() {
+      if (this.files.length === 0) return 0;
+      return Math.round((this.markedCount / this.files.length) * 100);
+    }
   },
   created() {
     this.render();
@@ -163,7 +195,6 @@ export default {
     ...mapActions("acrou/aplayer", ["add"]),
     ...mapActions("acrou/db", ["set"]),
     infiniteHandler($state) {
-      // 首次进入页面不执行滚动事件
       if (!this.page.page_token) {
         return;
       }
@@ -186,7 +217,6 @@ export default {
         .then((res) => {
           var body = res.data;
           if (body) {
-            // 判断响应状态
             if (body.error && body.error.code == "401") {
               this.checkPassword(path);
               return;
@@ -219,28 +249,33 @@ export default {
     },
     buildFiles(files) {
       var path = this.$route.path;
-      return !files
-        ? []
-        : files
-            .map((item) => {
-              var p = path + checkoutPath(item.name, item);
-              let isFolder =
-                item.mimeType === "application/vnd.google-apps.folder";
-              let size = isFolder ? "-" : formatFileSize(item.size);
-              return {
-                path: p,
-                ...item,
-                modifiedTime: formatDate(item.modifiedTime),
-                size: size,
-                isFolder: isFolder,
-              };
-            })
-            .sort((a, b) => {
-              if (a.isFolder && b.isFolder) {
-                return 0;
-              }
-              return a.isFolder ? -1 : 1;
-            });
+      if (!files) return [];
+
+      // Ẩn các file rác macOS và markdown tiêu đề
+      let cleanFiles = files.filter((item) => {
+        return !['.DS_Store', 'HEAD.md', 'README.md'].includes(item.name);
+      });
+
+      return cleanFiles
+        .map((item) => {
+          var p = path + checkoutPath(item.name, item);
+          let isFolder =
+            item.mimeType === "application/vnd.google-apps.folder";
+          let size = isFolder ? "-" : formatFileSize(item.size);
+          return {
+            path: p,
+            ...item,
+            modifiedTime: formatDate(item.modifiedTime),
+            size: size,
+            isFolder: isFolder,
+          };
+        })
+        .sort((a, b) => {
+          if (a.isFolder && b.isFolder) {
+            return 0;
+          }
+          return a.isFolder ? -1 : 1;
+        });
     },
     checkPassword(path) {
       var pass = prompt(this.$t("list.auth"), "");
@@ -263,7 +298,6 @@ export default {
       this.$viewer = viewer;
     },
     action(file, target, isSearch = true) {
-      // If it is a shortcut, the prompt cannot be downloaded
       if (file.mimeType === "application/vnd.google-apps.shortcut") {
         this.$notify({
           title: "notify.title",
@@ -345,7 +379,6 @@ export default {
         return;
       }
       files.forEach((item) => {
-        // HEAD.md
         if (item.name === "HEAD.md") {
           this.headmd = {
             display: true,
@@ -353,7 +386,6 @@ export default {
             path: path + item.name,
           };
         }
-        // REDEME.md
         if (item.name === "README.md") {
           this.readmemd = {
             display: true,
@@ -387,3 +419,88 @@ export default {
   },
 };
 </script>
+
+<style scoped>
+.main-container {
+  max-width: 1140px;
+  margin: 0 auto;
+  padding: 0 12px;
+}
+
+/* Card Container cho Bảng */
+.golist-card {
+  background: #ffffff;
+  border-radius: 16px;
+  box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.05), 0 0 1px 1px rgba(0, 0, 0, 0.02);
+  border: 1px solid rgba(226, 232, 240, 0.8);
+  padding: 12px 20px;
+  margin-top: 16px;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Progress Widget */
+.progress-card {
+  background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  padding: 16px 20px;
+  margin-top: 14px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+}
+
+.progress-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.progress-text {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.progress-badge {
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+  background: #ecfdf5;
+  color: #10b981;
+  padding: 3px 8px;
+  border-radius: 6px;
+  border: 1px solid #a7f3d0;
+}
+
+.progress-count {
+  font-size: 13px;
+  color: #475569;
+}
+
+.progress-percentage-text {
+  font-size: 16px;
+  font-weight: 800;
+  color: #059669;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+.progress-track {
+  width: 100%;
+  height: 8px;
+  background-color: #e2e8f0;
+  border-radius: 99px;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #10b981 0%, #059669 100%);
+  border-radius: 99px;
+  transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.custom-divider {
+  margin: 24px 0;
+  opacity: 0.6;
+}
+</style>
