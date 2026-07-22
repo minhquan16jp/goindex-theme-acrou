@@ -8,13 +8,18 @@
 
     <bread-crumb ref="breadcrumb"></bread-crumb>
 
-    <!-- Thanh tiến độ học tập -->
+  <!-- Thanh tiến độ học tập thiết kế mới -->
     <div class="progress-card" v-if="files.length > 0">
       <div class="progress-info">
-        <span class="progress-title">
-          📊 Tiến độ học tập: <strong>{{ markedCount }} / {{ files.length }} bài</strong>
-        </span>
-        <span class="progress-percent">{{ progressPercentage }}%</span>
+        <div class="progress-left">
+          <span class="progress-badge">TIẾN ĐỘ</span>
+          <span class="progress-title">
+            Hoàn thành <strong>{{ markedCount }}</strong> / {{ files.length }} bài học
+          </span>
+        </div>
+        <div class="progress-right">
+          <span class="progress-percent">{{ progressPercentage }}%</span>
+        </div>
       </div>
       <div class="progress-track">
         <div class="progress-fill" :style="{ width: progressPercentage + '%' }"></div>
@@ -441,33 +446,66 @@ export default {
   box-shadow: 0 6px 24px rgba(0, 0, 0, 0.07);
 }
 
-/* Progress Card */
+/* Progress Card Cực Đẹp */
 .progress-card {
   background: #ffffff;
   border: 1px solid #e2e8f0;
   border-radius: 12px;
-  padding: 14px 18px;
+  padding: 16px 20px;
   margin-top: 14px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+  transition: all 0.25s ease;
+}
+
+.progress-card:hover {
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.06);
+  border-color: #cbd5e1;
 }
 
 .progress-info {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 8px;
-  font-size: 13px;
-  color: #334155;
+  margin-bottom: 12px;
+}
+
+.progress-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.progress-badge {
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.6px;
+  background: #ecfdf5;
+  color: #059669;
+  padding: 3px 8px;
+  border-radius: 6px;
+  border: 1px solid #a7f3d0;
+}
+
+.progress-title {
+  font-size: 13.5px;
+  color: #475569;
+}
+
+.progress-title strong {
+  color: #0f172a;
+  font-weight: 700;
 }
 
 .progress-percent {
-  font-weight: 700;
+  font-size: 15px;
+  font-weight: 800;
   color: #10b981;
+  font-family: -apple-system, BlinkMacSystemFont, sans-serif;
 }
 
 .progress-track {
   width: 100%;
-  height: 8px;
+  height: 9px;
   background-color: #f1f5f9;
   border-radius: 99px;
   overflow: hidden;
@@ -477,7 +515,7 @@ export default {
   height: 100%;
   background: linear-gradient(90deg, #10b981 0%, #059669 100%);
   border-radius: 99px;
-  transition: width 0.4s ease-in-out;
+  transition: width 0.4s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .custom-divider {
