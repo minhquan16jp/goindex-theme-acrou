@@ -9,7 +9,7 @@
           :style="column.style"
         >
           {{ column.name }}
-          <span class="caret-wrapper">
+          <span class="caret-wrapper" v-if="index === 0">
             <i class="sort-caret ascending"></i>
             <i class="sort-caret descending"></i>
           </span>
@@ -20,9 +20,9 @@
       <tr 
         v-for="(file, index) in data" 
         v-bind:key="index"
-        :style="{ opacity: isMarked(file.name) ? '0.45' : '1' }"
+        :class="{ 'row-watched': isMarked(file.name) }"
       >
-        <!-- Cột 1: Tên file/folder + Nút Đánh Dấu -->
+        <!-- Cột 1: Tên file / thư mục -->
         <td
           @click.self="
             action(
@@ -35,31 +35,12 @@
           :title="file.name"
           style="vertical-align: middle;"
         >
-          <svg class="iconfont" aria-hidden="true" style="margin-right: 5px;">
-            <use :xlink:href="icons(file.mimeType)" />
-          </svg>
-
-          <span>{{ file.name }}</span>
-          
-          <!-- Nút Đánh Dấu / Bỏ Đánh Dấu -->
-          <button 
-            type="button"
-            @click.stop="toggleMark(file.name)"
-            :style="{
-              marginLeft: '10px',
-              padding: '2px 8px',
-              fontSize: '11px',
-              borderRadius: '4px',
-              border: '1px solid',
-              cursor: 'pointer',
-              verticalAlign: 'middle',
-              backgroundColor: isMarked(file.name) ? '#e8f5e9' : '#f5f5f5',
-              color: isMarked(file.name) ? '#2e7d32' : '#666',
-              borderColor: isMarked(file.name) ? '#81c784' : '#ccc'
-            }"
-          >
-            {{ isMarked(file.name) ? '✅ Đã xem' : '⚪ Đánh dấu' }}
-          </button>
+          <div class="file-name-wrapper">
+            <svg class="iconfont" aria-hidden="true" style="margin-right: 8px;">
+              <use :xlink:href="icons(file.mimeType)" />
+            </svg>
+            <span class="file-title">{{ file.name }}</span>
+          </div>
 
           <span
             class="has-text-grey g2-file-desc"
@@ -68,26 +49,42 @@
           ></span>
         </td>
 
-        <!-- Cột 2: Ngày sửa đổi -->
-        <td class="is-hidden-mobile is-hidden-touch" style="vertical-align: middle;">
-          {{ file.modifiedTime }}
+        <!-- Cột 2: Cột Trạng thái (Thay thế Ngày sửa đổi) -->
+        <td style="vertical-align: middle; text-align: center; width: 140px;">
+          <button 
+            type="button"
+            class="status-btn"
+            :class="isMarked(file.name) ? 'btn-marked' : 'btn-unmarked'"
+            @click.stop="toggleMark(file.name)"
+          >
+            <span v-if="isMarked(file.name)" class="btn-content">
+              <svg class="check-icon" viewBox="0 0 20 20" fill="currentColor">
+                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+              </svg>
+              Đã học
+            </span>
+            <span v-else class="btn-content">
+              <span class="dot-icon"></span>
+              Đánh dấu
+            </span>
+          </button>
         </td>
 
-        <!-- Cột 3: Kích thước -->
+        <!-- Cột 3: Dung lượng -->
         <td class="is-hidden-mobile is-hidden-touch" style="vertical-align: middle;">
           {{ file.size }}
         </td>
 
-        <!-- Cột 4: Các nút thao tác cũ (Copy, Tab mới, Tải về) -->
+        <!-- Cột 4: Thao tác (Copy, Tab mới, Tải về) -->
         <td class="is-hidden-mobile is-hidden-touch" style="vertical-align: middle;">
-          <span class="icon" @click.stop="action(file,'copy')" style="cursor: pointer; margin-right: 8px;">
+          <span class="icon action-icon" @click.stop="action(file,'copy')">
             <i
               class="fa fa-copy faa-shake animated-hover"
               :title="$t('list.opt.copy')"
               aria-hidden="true"
             ></i>
           </span>
-          <span class="icon" @click.stop="action(file, '_blank')" style="cursor: pointer; margin-right: 8px;">
+          <span class="icon action-icon" @click.stop="action(file, '_blank')">
             <i
               class="fa fa-external-link faa-shake animated-hover"
               :title="$t('list.opt.newTab')"
@@ -95,10 +92,9 @@
             ></i>
           </span>
           <span
-            class="icon"
+            class="icon action-icon"
             @click.stop="action(file, 'down')"
             v-if="file.mimeType !== 'application/vnd.google-apps.folder'"
-            style="cursor: pointer;"
           >
             <i
               class="fa fa-download faa-shake animated-hover"
@@ -139,18 +135,17 @@ export default {
       return [
         { name: this.$t("list.title.file"), style: "" },
         {
-          name: this.$t("list.title.moditime"),
-          style: "width:20%",
-          class: "is-hidden-mobile is-hidden-touch",
+          name: "Trạng thái", // Thay đổi tên cột
+          style: "width: 140px; text-align: center;",
         },
         {
           name: this.$t("list.title.size"),
-          style: "width:10.5%",
+          style: "width: 12%",
           class: "is-hidden-mobile is-hidden-touch",
         },
         {
           name: this.$t("list.title.operation"),
-          style: "width:13.5%",
+          style: "width: 14%",
           class: "is-hidden-mobile is-hidden-touch",
         },
       ];
@@ -185,3 +180,91 @@ export default {
   }
 };
 </script>
+
+<style scoped>
+/* Định dạng dòng đã học */
+.row-watched {
+  opacity: 0.55;
+  background-color: #fafafa;
+}
+
+.file-name-wrapper {
+  display: inline-flex;
+  align-items: center;
+}
+
+.file-title {
+  font-weight: 500;
+  color: #2c3e50;
+}
+
+/* Nút bấm thiết kế hiện đại (Pill Badge) */
+.status-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px 12px;
+  font-size: 12px;
+  font-weight: 600;
+  border-radius: 20px;
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+  outline: none;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+/* Trạng thái chưa đánh dấu */
+.btn-unmarked {
+  background-color: #f3f4f6;
+  color: #6b7280;
+  border-color: #e5e7eb;
+}
+
+.btn-unmarked:hover {
+  background-color: #e5e7eb;
+  color: #374151;
+  transform: translateY(-1px);
+}
+
+/* Trạng thái đã đánh dấu */
+.btn-marked {
+  background-color: #ecfdf5;
+  color: #059669;
+  border-color: #a7f3d0;
+}
+
+.btn-marked:hover {
+  background-color: #d1fae5;
+  transform: translateY(-1px);
+}
+
+.btn-content {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.check-icon {
+  width: 14px;
+  height: 14px;
+}
+
+.dot-icon {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background-color: #9ca3af;
+  display: inline-block;
+}
+
+.action-icon {
+  cursor: pointer;
+  margin-right: 8px;
+  transition: color 0.15s ease;
+}
+
+.action-icon:hover {
+  color: #3273dc;
+}
+</style>
