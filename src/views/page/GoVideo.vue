@@ -19,7 +19,7 @@
 
       <div v-else class="video-player-wrapper">
         <vue-plyr ref="plyr" :options="options">
-          <video controls crossorigin playsinline>
+          <video controls crossorigin playsinline preload="metadata">
             <source :src="videoUrl" type="video/mp4" />
             <track
               kind="captions"
@@ -32,12 +32,12 @@
         </vue-plyr>
       </div>
 
-      <!-- Video Action Bar: Thanh công cụ liên kết nhanh -->
+      <!-- Control Bar & Quick Link Copy -->
       <div class="video-actions-bar">
         <div class="field-copy-group">
-          <span class="link-label">Direct Link:</span>
+          <span class="link-label"><i class="fa fa-link"></i> Link Trực Tiếp:</span>
           <div class="input-with-btn">
-            <input class="custom-input" type="text" readonly :value="videoUrl" />
+            <input class="custom-input" type="text" readonly :value="videoUrl" @click="$event.target.select()" />
             <button class="btn-copy" @click="copy">
               <i class="fa fa-clone"></i> {{ $t("copy.text") }}
             </button>
@@ -50,7 +50,7 @@
     <div class="external-players-card">
       <div class="card-title-group">
         <span class="title-badge">EXTERNAL PLAYERS</span>
-        <h3 class="card-heading">Mở bằng trình phát ngoại vi</h3>
+        <h3 class="card-heading">Mở bằng Ứng Dụng Ngoại Vi</h3>
       </div>
 
       <div class="players-grid">
@@ -75,7 +75,7 @@ import { decode64 } from "@utils/AcrouUtil";
 import VuePlyr from "vue-plyr";
 
 export default {
-  comments: {
+  components: {
     VuePlyr,
   },
   data: function() {
@@ -88,7 +88,34 @@ export default {
   mounted() {
     this.render();
   },
+  // FIX TRIỆT ĐỂ: Dừng toàn bộ âm thanh/video khi chuyển route hoặc đổi folder
+  beforeDestroy() {
+    this.stopAllMedia();
+  },
+  beforeRouteLeave(to, from, next) {
+    this.stopAllMedia();
+    next();
+  },
   methods: {
+    stopAllMedia() {
+      try {
+        if (this.$refs.plyr && this.$refs.plyr.player) {
+          this.$refs.plyr.player.stop();
+        }
+      } catch (e) {
+        console.error("Error stopping Plyr player:", e);
+      }
+      try {
+        const mediaElements = document.querySelectorAll("video, audio");
+        mediaElements.forEach((el) => {
+          el.pause();
+          el.removeAttribute("src");
+          el.load();
+        });
+      } catch (e) {
+        console.error("Error pausing media DOM elements:", e);
+      }
+    },
     render() {
       let path = encodeURI(this.url);
       let index = path.lastIndexOf(".");
@@ -100,7 +127,7 @@ export default {
         let options = {
           src: this.videoUrl,
           autoplay: this.options.autoplay,
-          media: this.player.media,
+          media: this.player ? this.player.media : null,
         };
         if (this.suffix === "m3u8") {
           this.loadHls(options);
@@ -118,12 +145,14 @@ export default {
         Hls({
           ...options,
           callback: (hls) => {
-            this.player.on("languagechange", () => {
-              setTimeout(
-                () => (hls.subtitleTrack = this.player.currentTrack),
-                50
-              );
-            });
+            if (this.player) {
+              this.player.on("languagechange", () => {
+                setTimeout(
+                  () => (hls.subtitleTrack = this.player.currentTrack),
+                  50
+                );
+              });
+            }
           },
         });
       });
@@ -136,20 +165,23 @@ export default {
     },
     copy() {
       this.$copyText(this.videoUrl);
-      this.$notify({
-        title: "Thông báo",
-        message: "Đã sao chép đường dẫn video!",
-        type: "success",
-        duration: 2000
-      });
+      if (this.$notify) {
+        this.$notify({
+          title: "Thành công",
+          message: "Đã sao chép đường dẫn video trực tiếp!",
+          type: "success",
+          duration: 2000,
+        });
+      }
     },
   },
   computed: {
     options() {
-      var options = window.themeOptions.video;
+      var options = window.themeOptions ? window.themeOptions.video : {};
       return {
         autoplay: false,
         invertTime: false,
+        seekTime: 10,
         settings: ["quality", "speed", "loop"],
         ratio: "16:9",
         controls: [
@@ -169,11 +201,11 @@ export default {
           "fullscreen",
         ],
         ...options,
-        captions: { active: true, language: "default", ...options.captions },
+        captions: { active: true, language: "default", ...(options ? options.captions : {}) },
       };
     },
     player() {
-      return this.$refs.plyr.player;
+      return this.$refs.plyr ? this.$refs.plyr.player : null;
     },
     url() {
       if (this.$route.params.path) {
@@ -249,31 +281,47 @@ export default {
   padding: 0 12px;
 }
 
-/* 1. Main Video Card (Khung Cinema) */
+/* 1. Cinema Player Card Container */
 .video-card {
   background: #ffffff;
   border-radius: 16px;
   border: 1px solid #e2e8f0;
-  box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.06);
+  box-shadow: 0 12px 32px -8px rgba(0, 0, 0, 0.08);
   overflow: hidden;
   margin-bottom: 24px;
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+.video-card:hover {
+  box-shadow: 0 16px 40px -10px rgba(0, 0, 0, 0.12);
 }
 
 .video-player-wrapper,
 .video-content-iframe {
+  position: relative;
   width: 100%;
   background: #000000;
   border-bottom: 1px solid #e2e8f0;
   overflow: hidden;
 }
 
-/* CSS tùy chỉnh Plyr Controls */
->>> .plyr {
-  border-radius: 0 !important;
-  --plyr-color-main: #0284c7; /* Đổi màu nhấn sang Xanh Cyan tươi */
+.video-content-iframe iframe {
+  aspect-ratio: 16 / 9;
+  min-height: 480px;
 }
 
-/* Thanh công cụ sao chép link */
+/* Tùy chỉnh màu nhấn Plyr Controls sang tông Cyan tươi mát */
+>>> .plyr {
+  border-radius: 0 !important;
+  --plyr-color-main: #0284c7;
+  --plyr-video-background: #000000;
+}
+
+>>> .plyr--video {
+  max-height: 75vh;
+}
+
+/* Thanh công cụ Copy Link */
 .video-actions-bar {
   padding: 16px 20px;
   background: #ffffff;
@@ -288,8 +336,11 @@ export default {
 .link-label {
   font-size: 13px;
   font-weight: 700;
-  color: #64748b;
+  color: #475569;
   white-space: nowrap;
+  display: flex;
+  align-items: center;
+  gap: 6px;
 }
 
 .input-with-btn {
@@ -297,9 +348,15 @@ export default {
   align-items: center;
   width: 100%;
   background: #f8fafc;
-  border: 1px solid #e2e8f0;
+  border: 1px solid #cbd5e1;
   border-radius: 10px;
-  padding: 4px;
+  padding: 3px;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.input-with-btn:focus-within {
+  border-color: #0284c7;
+  box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.15);
 }
 
 .custom-input {
@@ -308,9 +365,9 @@ export default {
   background: transparent;
   padding: 6px 12px;
   font-size: 13px;
-  color: #334155;
+  color: #1e293b;
   outline: none;
-  font-family: monospace;
+  font-family: -apple-system, BlinkMacSystemFont, "SF Mono", Roboto, monospace;
 }
 
 .btn-copy {
@@ -320,20 +377,27 @@ export default {
   background: #0284c7;
   color: #ffffff;
   border: none;
-  padding: 8px 16px;
-  font-size: 12px;
+  padding: 8px 18px;
+  font-size: 12.5px;
   font-weight: 600;
   border-radius: 8px;
   cursor: pointer;
   white-space: nowrap;
   transition: all 0.2s ease;
+  box-shadow: 0 2px 6px rgba(2, 132, 199, 0.25);
 }
 
 .btn-copy:hover {
   background: #0369a1;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(2, 132, 199, 0.35);
 }
 
-/* 2. External Players Card (Danh sách App mở ngoài) */
+.btn-copy:active {
+  transform: translateY(0);
+}
+
+/* 2. External Players App Grid */
 .external-players-card {
   background: #ffffff;
   border-radius: 16px;
@@ -360,13 +424,13 @@ export default {
 .card-heading {
   font-size: 15px;
   font-weight: 700;
-  color: #1e293b;
+  color: #0f172a;
   margin-top: 6px;
 }
 
 .players-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(105px, 1fr));
   gap: 14px;
 }
 
@@ -387,12 +451,12 @@ export default {
   background: #ffffff;
   border-color: #0284c7;
   transform: translateY(-2px);
-  box-shadow: 0 6px 16px rgba(2, 132, 199, 0.12);
+  box-shadow: 0 6px 18px rgba(2, 132, 199, 0.15);
 }
 
 .player-icon-wrapper {
-  width: 42px;
-  height: 42px;
+  width: 40px;
+  height: 40px;
   display: flex;
   align-items: center;
   justify-content: center;
