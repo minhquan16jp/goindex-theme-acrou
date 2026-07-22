@@ -1,5 +1,5 @@
 <template>
-  <div class="main-container">
+  <div class="main-container dark-theme">
     <headmd
       :option="headmd"
       v-if="renderHeadMD && headmd.display"
@@ -8,7 +8,7 @@
 
     <bread-crumb ref="breadcrumb"></bread-crumb>
 
-    <!-- Progress Card (Hỗ trợ Dark Mode) -->
+    <!-- Progress Card (Dark UI) -->
     <div class="progress-card" v-if="files.length > 0">
       <div class="progress-info">
         <div class="progress-text">
@@ -420,53 +420,30 @@ export default {
 </script>
 
 <style scoped>
-/* Biến màu Light Mode (Sáng) */
-:root {
-  --card-bg: #ffffff;
-  --card-border: rgba(226, 232, 240, 0.8);
-  --progress-bg: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
-  --progress-border: #e2e8f0;
-  --progress-count-color: #475569;
-  --progress-track: #e2e8f0;
-}
-
-/* Biến màu Dark Mode (Tối) */
-@media (prefers-color-scheme: dark) {
-  :root {
-    --card-bg: #1e293b;
-    --card-border: #334155;
-    --progress-bg: #1e293b;
-    --progress-border: #334155;
-    --progress-count-color: #94a3b8;
-    --progress-track: #334155;
-  }
-}
-
 .main-container {
   max-width: 1140px;
   margin: 0 auto;
   padding: 0 12px;
 }
 
-/* Card Container */
+/* Card Bảng - Premium Dark Card */
 .golist-card {
-  background: var(--card-bg, #ffffff);
+  background: #1e293b !important; /* Xám Sapphire tối */
   border-radius: 16px;
-  box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.05);
-  border: 1px solid var(--card-border, #e2e8f0);
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5), 0 8px 10px -6px rgba(0, 0, 0, 0.3);
+  border: 1px solid #334155;
   padding: 12px 20px;
   margin-top: 16px;
-  transition: all 0.3s ease;
 }
 
-/* Progress Card */
+/* Progress Card Dark UI */
 .progress-card {
-  background: var(--progress-bg, #ffffff);
-  border: 1px solid var(--progress-border, #e2e8f0);
+  background: #1e293b !important;
+  border: 1px solid #334155;
   border-radius: 14px;
   padding: 16px 20px;
   margin-top: 14px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3);
 }
 
 .progress-info {
@@ -483,44 +460,51 @@ export default {
 }
 
 .progress-badge {
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 800;
   letter-spacing: 0.5px;
-  background: #064e3b;
+  background: rgba(16, 185, 129, 0.15);
   color: #34d399;
-  padding: 3px 8px;
+  padding: 4px 10px;
   border-radius: 6px;
-  border: 1px solid #059669;
+  border: 1px solid rgba(52, 211, 153, 0.3);
 }
 
 .progress-count {
   font-size: 13px;
-  color: var(--progress-count-color, #475569);
+  color: #cbd5e1;
+}
+
+.progress-count strong {
+  color: #ffffff;
 }
 
 .progress-percentage-text {
-  font-size: 16px;
+  font-size: 18px;
   font-weight: 800;
-  color: #10b981;
+  color: #34d399;
+  font-family: monospace;
 }
 
 .progress-track {
   width: 100%;
   height: 8px;
-  background-color: var(--progress-track, #e2e8f0);
+  background-color: #0f172a;
   border-radius: 99px;
   overflow: hidden;
+  border: 1px solid #334155;
 }
 
 .progress-fill {
   height: 100%;
-  background: linear-gradient(90deg, #10b981 0%, #059669 100%);
+  background: linear-gradient(90deg, #10b981 0%, #34d399 100%);
   border-radius: 99px;
+  box-shadow: 0 0 12px rgba(52, 211, 153, 0.5);
   transition: width 0.5s ease;
 }
 
 .custom-divider {
   margin: 24px 0;
-  opacity: 0.6;
+  opacity: 0.3;
 }
 </style>

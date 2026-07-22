@@ -1,5 +1,5 @@
 <template>
-  <table class="custom-table">
+  <table class="dark-table">
     <thead>
       <tr>
         <th
@@ -174,100 +174,78 @@ export default {
 </script>
 
 <style scoped>
-/* Biến màu cho Table Light Mode */
-.custom-table {
-  --th-color: #64748b;
-  --border-color: #f1f5f9;
-  --text-color: #1e293b;
-  --hover-bg: #f8fafc;
-  --unmarked-bg: #f1f5f9;
-  --unmarked-text: #64748b;
-  --unmarked-border: #e2e8f0;
-  --btn-bg: #ffffff;
-  --btn-border: #e2e8f0;
-  --btn-text: #64748b;
-  
+.dark-table {
   width: 100%;
   border-collapse: separate;
   border-spacing: 0;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
 }
 
-/* Biến màu cho Table Dark Mode */
-@media (prefers-color-scheme: dark) {
-  .custom-table {
-    --th-color: #94a3b8;
-    --border-color: #334155;
-    --text-color: #f1f5f9;
-    --hover-bg: #334155;
-    --unmarked-bg: #334155;
-    --unmarked-text: #cbd5e1;
-    --unmarked-border: #475569;
-    --btn-bg: #334155;
-    --btn-border: #475569;
-    --btn-text: #cbd5e1;
-  }
-}
-
-.custom-table th {
-  padding: 12px 14px;
-  font-size: 12px;
-  font-weight: 700;
-  color: var(--th-color);
+/* Header Bảng */
+.dark-table th {
+  padding: 14px;
+  font-size: 11px;
+  font-weight: 800;
+  color: #94a3b8 !important; /* Màu chữ tiêu đề sáng rõ */
   text-transform: uppercase;
-  letter-spacing: 0.6px;
-  border-bottom: 2px solid var(--border-color);
+  letter-spacing: 0.8px;
+  border-bottom: 2px solid #334155 !important;
 }
 
+/* Các Dòng Bảng */
 .table-row {
-  transition: all 0.18s ease-in-out;
+  transition: all 0.2s ease;
 }
 
 .table-row:hover {
-  background-color: var(--hover-bg) !important;
+  background-color: #334155 !important; /* Sáng dòng lên khi di chuột */
 }
 
 .table-row td {
-  padding: 14px;
-  border-bottom: 1px solid var(--border-color);
+  padding: 16px 14px;
+  border-bottom: 1px solid #334155 !important;
   vertical-align: middle;
 }
 
 .table-row:last-child td {
-  border-bottom: none;
+  border-bottom: none !important;
 }
 
+/* Dòng Đã Học */
 .row-watched {
-  opacity: 0.45;
+  opacity: 0.4;
 }
 
 .row-watched .file-name-text {
   text-decoration: line-through;
-  color: #64748b;
+  color: #64748b !important;
 }
 
+/* Tên File/Folder - ĐẶC BIỆT CẢI TIẾN MÀU TRẮNG SÁNG */
 .file-item-group {
   display: inline-flex;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
 }
 
 .file-icon {
-  width: 22px;
-  height: 22px;
+  width: 24px;
+  height: 24px;
   flex-shrink: 0;
 }
 
 .file-name-text {
   font-size: 14px;
-  font-weight: 500;
-  color: var(--text-color);
+  font-weight: 600;
+  color: #f8fafc !important; /* TRẮNG TÍNH SÁNG NÉT, RÕ RÀNG 100% */
   transition: color 0.15s ease;
 }
 
 .table-row:hover .file-name-text {
-  color: #38bdf8;
+  color: #38bdf8 !important; /* Xanh Neon sáng khi hover */
 }
 
+/* Cột Trạng Thái */
 .status-cell {
   text-align: center;
 }
@@ -276,9 +254,9 @@ export default {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  padding: 5px 14px;
+  padding: 6px 14px;
   font-size: 12px;
-  font-weight: 600;
+  font-weight: 700;
   border-radius: 20px;
   border: 1px solid transparent;
   cursor: pointer;
@@ -286,30 +264,35 @@ export default {
   outline: none;
 }
 
+/* Nút Chưa Đánh Dấu (Dark UI) */
 .btn-unmarked {
-  background-color: var(--unmarked-bg);
-  color: var(--unmarked-text);
-  border-color: var(--unmarked-border);
+  background-color: #0f172a !important;
+  color: #94a3b8 !important;
+  border-color: #334155 !important;
 }
 
 .btn-unmarked:hover {
-  opacity: 0.8;
+  background-color: #334155 !important;
+  color: #ffffff !important;
+  border-color: #475569 !important;
 }
 
+/* Nút Đã Học (Dark Neon Green) */
 .btn-marked {
-  background-color: #064e3b;
-  color: #34d399;
-  border-color: #059669;
+  background-color: rgba(16, 185, 129, 0.2) !important;
+  color: #34d399 !important;
+  border-color: rgba(52, 211, 153, 0.4) !important;
+  box-shadow: 0 0 10px rgba(52, 211, 153, 0.2);
 }
 
 .btn-marked:hover {
-  background-color: #047857;
+  background-color: rgba(16, 185, 129, 0.3) !important;
 }
 
 .btn-inner {
   display: flex;
   align-items: center;
-  gap: 5px;
+  gap: 6px;
 }
 
 .icon-svg {
@@ -321,19 +304,21 @@ export default {
   width: 6px;
   height: 6px;
   border-radius: 50%;
-  background-color: #94a3b8;
+  background-color: #64748b;
 }
 
+/* Dung Lượng */
 .size-cell {
   text-align: right;
 }
 
 .size-badge {
   font-size: 12px;
-  color: var(--th-color);
+  color: #94a3b8 !important;
   font-family: monospace;
 }
 
+/* Thao Tác */
 .action-cell {
   text-align: center;
 }
@@ -341,32 +326,35 @@ export default {
 .action-btn-group {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
 }
 
 .action-btn {
-  width: 30px;
-  height: 30px;
+  width: 32px;
+  height: 32px;
   border-radius: 8px;
-  border: 1px solid var(--btn-border);
-  background-color: var(--btn-bg);
-  color: var(--btn-text);
+  border: 1px solid #334155 !important;
+  background-color: #0f172a !important;
+  color: #cbd5e1 !important;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  font-size: 12px;
-  transition: all 0.15s ease;
+  font-size: 13px;
+  transition: all 0.2s ease;
 }
 
 .action-btn:hover {
-  background-color: #0284c7;
-  color: #ffffff;
-  border-color: #0284c7;
+  background-color: #38bdf8 !important;
+  color: #0f172a !important;
+  border-color: #38bdf8 !important;
+  box-shadow: 0 0 12px rgba(56, 189, 248, 0.4);
 }
 
 .download-btn:hover {
-  background-color: #10b981;
-  border-color: #10b981;
+  background-color: #34d399 !important;
+  color: #0f172a !important;
+  border-color: #34d399 !important;
+  box-shadow: 0 0 12px rgba(52, 211, 153, 0.4);
 }
 </style>
