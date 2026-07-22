@@ -17,7 +17,11 @@
       </tr>
     </thead>
     <tbody>
-      <tr v-for="(file, index) in data" v-bind:key="index">
+      <tr 
+        v-for="(file, index) in data" 
+        v-bind:key="index"
+        :style="{ opacity: isMarked(file.name) ? '0.45' : '1' }"
+      >
         <td
           @click.self="
             action(
@@ -33,6 +37,26 @@
             <use :xlink:href="icons(file.mimeType)" />
           </svg>
           {{ file.name }}
+          
+          <!-- Nút Đánh Dấu / Bỏ Đánh Dấu -->
+          <button 
+            type="button"
+            @click.stop="toggleMark(file.name)"
+            :style="{
+              marginLeft: '10px',
+              padding: '2px 8px',
+              fontSize: '11px',
+              borderRadius: '4px',
+              border: '1px solid',
+              cursor: 'pointer',
+              backgroundColor: isMarked(file.name) ? '#e8f5e9' : '#f5f5f5',
+              color: isMarked(file.name) ? '#2e7d32' : '#666',
+              borderColor: isMarked(file.name) ? '#81c784' : '#ccc'
+            }"
+          >
+            {{ isMarked(file.name) ? '✅ Đã xem' : '⚪ Đánh dấu' }}
+          </button>
+
           <span
             class="has-text-grey g2-file-desc"
             v-if="isShowDesc"
@@ -74,6 +98,7 @@
     </tbody>
   </table>
 </template>
+
 <script>
 export default {
   props: {
@@ -87,6 +112,15 @@ export default {
     action: {
       type: Function,
     }
+  },
+  data() {
+    return {
+      // Biến trigger để Vue nhận biết khi localStorage thay đổi
+      markedStore: {}
+    };
+  },
+  created() {
+    this.loadStore();
   },
   computed: {
     columns() {
@@ -113,5 +147,29 @@ export default {
       return window.themeOptions.render.desc || false;
     },
   },
+  methods: {
+    loadStore() {
+      try {
+        this.markedStore = JSON.parse(localStorage.getItem('minkuan_manual_marked') || '{}');
+      } catch(e) {
+        this.markedStore = {};
+      }
+    },
+    isMarked(name) {
+      return !!this.markedStore[name];
+    },
+    toggleMark(name) {
+      try {
+        let store = JSON.parse(localStorage.getItem('minkuan_manual_marked') || '{}');
+        if (store[name]) {
+          delete store[name];
+        } else {
+          store[name] = true;
+        }
+        localStorage.setItem('minkuan_manual_marked', JSON.stringify(store));
+        this.markedStore = { ...store }; // Cập nhật lại state để Vue re-render ngay
+      } catch(e) {}
+    }
+  }
 };
 </script>
