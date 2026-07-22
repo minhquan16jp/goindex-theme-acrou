@@ -1,5 +1,5 @@
 <template>
-  <table class="custom-table">
+  <table class="smooth-table">
     <thead>
       <tr>
         <th
@@ -54,20 +54,11 @@
         <td class="status-cell">
           <button 
             type="button"
-            class="modern-status-btn"
+            class="status-btn"
             :class="isMarked(file.name) ? 'btn-marked' : 'btn-unmarked'"
             @click.stop="toggleMark(file.name)"
           >
-            <span v-if="isMarked(file.name)" class="btn-inner">
-              <svg class="icon-svg" viewBox="0 0 20 20" fill="currentColor">
-                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
-              </svg>
-              Đã học
-            </span>
-            <span v-else class="btn-inner">
-              <span class="unmarked-dot"></span>
-              Đánh dấu
-            </span>
+            {{ isMarked(file.name) ? '✓ Đã học' : '• Đánh dấu' }}
           </button>
         </td>
 
@@ -128,7 +119,7 @@ export default {
         { name: this.$t("list.title.file"), style: "" },
         {
           name: "Trạng thái",
-          style: "width: 140px; text-align: center;",
+          style: "width: 130px; text-align: center;",
         },
         {
           name: this.$t("list.title.size"),
@@ -174,32 +165,29 @@ export default {
 </script>
 
 <style scoped>
-.custom-table {
+.smooth-table {
   width: 100%;
   border-collapse: separate;
   border-spacing: 0;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
 }
 
-/* Header Bảng */
-.custom-table th {
+.smooth-table th {
   padding: 12px 14px;
   font-size: 12px;
   font-weight: 700;
   color: #64748b;
   text-transform: uppercase;
-  letter-spacing: 0.6px;
+  letter-spacing: 0.5px;
   border-bottom: 2px solid #f1f5f9;
 }
 
-/* Các Dòng Bảng */
 .table-row {
-  transition: all 0.18s ease-in-out;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .table-row:hover {
   background-color: #f8fafc !important;
-  transform: translateY(-1px);
 }
 
 .table-row td {
@@ -212,10 +200,8 @@ export default {
   border-bottom: none;
 }
 
-/* Dòng Đã Học */
 .row-watched {
   opacity: 0.5;
-  background-color: #fafafa;
 }
 
 .row-watched .file-name-text {
@@ -223,7 +209,6 @@ export default {
   color: #94a3b8;
 }
 
-/* Tên File/Folder */
 .file-item-group {
   display: inline-flex;
   align-items: center;
@@ -247,22 +232,18 @@ export default {
   color: #0284c7;
 }
 
-/* Cột Trạng Thái */
 .status-cell {
   text-align: center;
 }
 
-.modern-status-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
+.status-btn {
   padding: 5px 14px;
   font-size: 12px;
   font-weight: 600;
   border-radius: 20px;
   border: 1px solid transparent;
   cursor: pointer;
-  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: all 0.2s ease;
   outline: none;
 }
 
@@ -275,7 +256,6 @@ export default {
 .btn-unmarked:hover {
   background-color: #e2e8f0;
   color: #334155;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.05);
 }
 
 .btn-marked {
@@ -284,30 +264,6 @@ export default {
   border-color: #a7f3d0;
 }
 
-.btn-marked:hover {
-  background-color: #d1fae5;
-  box-shadow: 0 2px 6px rgba(16, 185, 129, 0.15);
-}
-
-.btn-inner {
-  display: flex;
-  align-items: center;
-  gap: 5px;
-}
-
-.icon-svg {
-  width: 14px;
-  height: 14px;
-}
-
-.unmarked-dot {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background-color: #94a3b8;
-}
-
-/* Dung Lượng */
 .size-cell {
   text-align: right;
 }
@@ -318,7 +274,6 @@ export default {
   font-family: monospace;
 }
 
-/* Thao Tác */
 .action-cell {
   text-align: center;
 }
@@ -348,7 +303,6 @@ export default {
   background-color: #0284c7;
   color: #ffffff;
   border-color: #0284c7;
-  transform: translateY(-1px);
 }
 
 .download-btn:hover {
@@ -356,4 +310,3 @@ export default {
   border-color: #10b981;
 }
 </style>
-

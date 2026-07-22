@@ -8,21 +8,20 @@
 
     <bread-crumb ref="breadcrumb"></bread-crumb>
 
-    <!-- Progress Card (Thiết kế phong cách Modern LMS) -->
+    <!-- Thanh tiến độ học tập -->
     <div class="progress-card" v-if="files.length > 0">
       <div class="progress-info">
-        <div class="progress-text">
-          <span class="progress-badge">TIẾN ĐỘ HỌC TẬP</span>
-          <span class="progress-count">Đã hoàn thành <strong>{{ markedCount }}</strong> / {{ files.length }} bài</span>
-        </div>
-        <div class="progress-percentage-text">{{ progressPercentage }}%</div>
+        <span class="progress-title">
+          📊 Tiến độ học tập: <strong>{{ markedCount }} / {{ files.length }} bài</strong>
+        </span>
+        <span class="progress-percent">{{ progressPercentage }}%</span>
       </div>
       <div class="progress-track">
         <div class="progress-fill" :style="{ width: progressPercentage + '%' }"></div>
       </div>
     </div>
 
-    <!-- Main List Card Container -->
+    <!-- Khung Card bo tròn chứa danh sách bài học -->
     <div class="golist-card" v-loading="loading">
       <list-view
         :data="files"
@@ -251,7 +250,7 @@ export default {
       var path = this.$route.path;
       if (!files) return [];
 
-      // Ẩn các file rác macOS và markdown tiêu đề
+      // Lọc sạch file rác .DS_Store của macOS
       let cleanFiles = files.filter((item) => {
         return !['.DS_Store', 'HEAD.md', 'README.md'].includes(item.name);
       });
@@ -427,67 +426,49 @@ export default {
   padding: 0 12px;
 }
 
-/* Card Container cho Bảng */
+/* Card Container */
 .golist-card {
   background: #ffffff;
-  border-radius: 16px;
-  box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.05), 0 0 1px 1px rgba(0, 0, 0, 0.02);
-  border: 1px solid rgba(226, 232, 240, 0.8);
+  border-radius: 14px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+  border: 1px solid #edf2f7;
   padding: 12px 20px;
   margin-top: 16px;
-  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: box-shadow 0.3s ease;
 }
 
-/* Progress Widget */
+.golist-card:hover {
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.07);
+}
+
+/* Progress Card */
 .progress-card {
-  background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+  background: #ffffff;
   border: 1px solid #e2e8f0;
-  border-radius: 14px;
-  padding: 16px 20px;
+  border-radius: 12px;
+  padding: 14px 18px;
   margin-top: 14px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
 }
 
 .progress-info {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 10px;
-}
-
-.progress-text {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.progress-badge {
-  font-size: 10px;
-  font-weight: 800;
-  letter-spacing: 0.5px;
-  background: #ecfdf5;
-  color: #10b981;
-  padding: 3px 8px;
-  border-radius: 6px;
-  border: 1px solid #a7f3d0;
-}
-
-.progress-count {
+  margin-bottom: 8px;
   font-size: 13px;
-  color: #475569;
+  color: #334155;
 }
 
-.progress-percentage-text {
-  font-size: 16px;
-  font-weight: 800;
-  color: #059669;
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+.progress-percent {
+  font-weight: 700;
+  color: #10b981;
 }
 
 .progress-track {
   width: 100%;
   height: 8px;
-  background-color: #e2e8f0;
+  background-color: #f1f5f9;
   border-radius: 99px;
   overflow: hidden;
 }
@@ -496,7 +477,7 @@ export default {
   height: 100%;
   background: linear-gradient(90deg, #10b981 0%, #059669 100%);
   border-radius: 99px;
-  transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: width 0.4s ease-in-out;
 }
 
 .custom-divider {
