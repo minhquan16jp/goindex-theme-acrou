@@ -22,6 +22,7 @@
           <video controls crossorigin playsinline preload="metadata">
             <source :src="videoUrl" type="video/mp4" />
             <track
+              v-if="subtitle"
               kind="captions"
               label="Default"
               srclang="default"
@@ -37,9 +38,16 @@
         <div class="field-copy-group">
           <span class="link-label"><i class="fa fa-link"></i> Link Trực Tiếp:</span>
           <div class="input-with-btn">
-            <input class="custom-input" type="text" readonly :value="videoUrl" @click="$event.target.select()" />
-            <button class="btn-copy" @click="copy">
-              <i class="fa fa-clone"></i> {{ $t("copy.text") }}
+            <input
+              class="custom-input"
+              type="text"
+              readonly
+              :value="videoUrl"
+              aria-label="Direct Video URL"
+              @click="$event.target.select()"
+            />
+            <button class="btn-copy" type="button" aria-label="Copy Link" @click="copy">
+              <i class="fa fa-clone"></i> {{ $t ? $t("copy.text") : "Sao chép" }}
             </button>
           </div>
         </div>
@@ -59,9 +67,11 @@
           :key="index"
           :href="item.scheme"
           class="player-item"
+          target="_blank"
+          rel="noopener noreferrer"
         >
           <div class="player-icon-wrapper">
-            <img class="player-icon" :src="item.icon" :alt="item.name" />
+            <img class="player-icon" :src="item.icon" :alt="item.name" loading="lazy" />
           </div>
           <span class="player-name">{{ item.name }}</span>
         </a>
@@ -75,115 +85,42 @@ import { decode64 } from "@utils/AcrouUtil";
 import VuePlyr from "vue-plyr";
 
 export default {
+  name: "VideoPlayer",
   components: {
     VuePlyr,
   },
-  data: function() {
+  data() {
     return {
       apiVideoUrl: "",
       videoUrl: "",
       subtitle: "",
+      suffix: "",
     };
   },
-  mounted() {
-    this.render();
-  },
-  beforeDestroy() {
-    this.stopAllMedia();
-  },
-  beforeRouteLeave(to, from, next) {
-    this.stopAllMedia();
-    next();
-  },
-  methods: {
-    stopAllMedia() {
-      try {
-        if (this.$refs.plyr && this.$refs.plyr.player) {
-          this.$refs.plyr.player.stop();
-        }
-      } catch (e) {
-        console.error("Error stopping Plyr player:", e);
-      }
-      try {
-        const mediaElements = document.querySelectorAll("video, audio");
-        mediaElements.forEach((el) => {
-          el.pause();
-          el.removeAttribute("src");
-          el.load();
-        });
-      } catch (e) {
-        console.error("Error pausing media DOM elements:", e);
-      }
-    },
-    render() {
-      let path = encodeURI(this.url);
-      let index = path.lastIndexOf(".");
-      this.suffix = path.substring(index + 1, path.length);
-      this.loadSub(path, index);
-      this.videoUrl = window.location.origin + path;
-      this.apiVideoUrl = this.options.api + this.videoUrl;
-      if (!this.options.api) {
-        let options = {
-          src: this.videoUrl,
-          autoplay: this.options.autoplay,
-          media: this.player ? this.player.media : null,
-        };
-        if (this.suffix === "m3u8") {
-          this.loadHls(options);
-        } else if (this.suffix === "flv") {
-          this.loadFlv(options);
-        }
-      }
-    },
-    loadSub(path, index) {
-      this.subtitle = path.substring(0, index) + ".vtt";
-    },
-    loadHls(options) {
-      import("@/plugin/vplayer/hls").then((res) => {
-        var Hls = res.default;
-        Hls({
-          ...options,
-          callback: (hls) => {
-            if (this.player) {
-              this.player.on("languagechange", () => {
-                setTimeout(
-                  () => (hls.subtitleTrack = this.player.currentTrack),
-                  50
-                );
-              });
-            }
-          },
-        });
-      });
-    },
-    loadFlv(options) {
-      import("@/plugin/vplayer/flv").then((res) => {
-        var Flv = res.default;
-        Flv(options);
-      });
-    },
-    copy() {
-      this.$copyText(this.videoUrl);
-      if (this.$notify) {
-        this.$notify({
-          title: "Thành công",
-          message: "Đã sao chép đường dẫn video trực tiếp!",
-          type: "success",
-          duration: 2000,
-        });
-      }
-    },
-  },
   computed: {
+    url() {
+      if (this.$route && this.$route.params && this.$route.params.path) {
+        return decode64(this.$route.params.path);
+      }
+      return "";
+    },
+    // Fix lỗi: Thiếu thuộc tính title dẫn đến gãy liên kết MXPlayer
+    title() {
+      if (!this.url) return "Video";
+      const parts = this.url.split("/");
+      return parts[parts.length - 1] || "Video";
+    },
     options() {
-      var options = window.themeOptions ? window.themeOptions.video : {};
+      const globalOptions =
+        typeof window !== "undefined" && window.themeOptions
+          ? window.themeOptions.video
+          : {};
       return {
         autoplay: false,
         invertTime: false,
         seekTime: 10,
         settings: ["quality", "speed", "loop"],
         ratio: "16:9",
-        // 🚀 BẮT PLYR GIỮ NGUYÊN UI VÀ DÙNG GIẢ LẬP FULLSCREEN TRÊN MOBILE
         fullscreen: {
           enabled: true,
           fallback: true,
@@ -205,75 +142,208 @@ export default {
           "download",
           "fullscreen",
         ],
-        ...options,
-        captions: { active: true, language: "default", ...(options ? options.captions : {}) },
+        ...globalOptions,
+        captions: {
+          active: true,
+          language: "default",
+          ...(globalOptions ? globalOptions.captions : {}),
+        },
       };
     },
     player() {
       return this.$refs.plyr ? this.$refs.plyr.player : null;
     },
-    url() {
-      if (this.$route.params.path) {
-        return decode64(this.$route.params.path);
+    getThunder() {
+      if (!this.videoUrl) return "";
+      try {
+        return window.btoa("AA" + this.videoUrl + "ZZ");
+      } catch (e) {
+        return "";
       }
-      return "";
     },
     players() {
+      const getCdn = (path) =>
+        this.$cdnpath ? this.$cdnpath(path) : `/assets/${path}`;
+      const encodedTitle = encodeURIComponent(this.title);
+
       return [
         {
           name: "IINA",
-          icon: this.$cdnpath("images/player/iina.png"),
-          scheme: "iina://weblink?url=" + this.videoUrl,
+          icon: getCdn("images/player/iina.png"),
+          scheme: "iina://weblink?url=" + encodeURIComponent(this.videoUrl),
         },
         {
           name: "PotPlayer",
-          icon: this.$cdnpath("images/player/potplayer.png"),
+          icon: getCdn("images/player/potplayer.png"),
           scheme: "potplayer://" + this.videoUrl,
         },
         {
           name: "VLC",
-          icon: this.$cdnpath("images/player/vlc.png"),
+          icon: getCdn("images/player/vlc.png"),
           scheme: "vlc://" + this.videoUrl,
         },
         {
           name: "Thunder",
-          icon: this.$cdnpath("images/player/thunder.png"),
+          icon: getCdn("images/player/thunder.png"),
           scheme: "thunder://" + this.getThunder,
         },
         {
           name: "Aria2",
-          icon: this.$cdnpath("images/player/aria2.png"),
-          scheme: 'javascript:alert("Chức năng đang phát triển")',
+          icon: getCdn("images/player/aria2.png"),
+          scheme: "javascript:void(0);",
         },
         {
           name: "nPlayer",
-          icon: this.$cdnpath("images/player/nplayer.png"),
+          icon: getCdn("images/player/nplayer.png"),
           scheme: "nplayer-" + this.videoUrl,
         },
         {
           name: "MXPlayer (Free)",
-          icon: this.$cdnpath("images/player/mxplayer.png"),
-          scheme:
-            "intent:" +
-            this.videoUrl +
-            "#Intent;package=com.mxtech.videoplayer.ad;S.title=" +
-            this.title +
-            ";end",
+          icon: getCdn("images/player/mxplayer.png"),
+          scheme: `intent:${this.videoUrl}#Intent;package=com.mxtech.videoplayer.ad;S.title=${encodedTitle};end`,
         },
         {
           name: "MXPlayer (Pro)",
-          icon: this.$cdnpath("images/player/mxplayer.png"),
-          scheme:
-            "intent:" +
-            this.videoUrl +
-            "#Intent;package=com.mxtech.videoplayer.pro;S.title=" +
-            this.title +
-            ";end",
+          icon: getCdn("images/player/mxplayer.png"),
+          scheme: `intent:${this.videoUrl}#Intent;package=com.mxtech.videoplayer.pro;S.title=${encodedTitle};end`,
         },
       ];
     },
-    getThunder() {
-      return Buffer.from("AA" + this.videoUrl + "ZZ").toString("base64");
+  },
+  mounted() {
+    this.render();
+    this.bindFullscreenEvents();
+  },
+  beforeDestroy() {
+    this.stopAllMedia();
+    this.removeFullscreenClasses();
+  },
+  beforeRouteLeave(to, from, next) {
+    this.stopAllMedia();
+    this.removeFullscreenClasses();
+    next();
+  },
+  methods: {
+    // Tự động gắn class vào <html> và <body> khi mở Fullscreen để khóa cuộn 100%
+    bindFullscreenEvents() {
+      this.$nextTick(() => {
+        if (this.player) {
+          this.player.on("enterfullscreen", () => {
+            if (typeof document !== "undefined") {
+              document.documentElement.classList.add("plyr-is-fullscreen");
+              document.body.classList.add("plyr-is-fullscreen");
+            }
+          });
+          this.player.on("exitfullscreen", () => {
+            this.removeFullscreenClasses();
+          });
+        }
+      });
+    },
+    removeFullscreenClasses() {
+      if (typeof document !== "undefined") {
+        document.documentElement.classList.remove("plyr-is-fullscreen");
+        document.body.classList.remove("plyr-is-fullscreen");
+      }
+    },
+    stopAllMedia() {
+      try {
+        if (this.player && typeof this.player.destroy === "function") {
+          this.player.destroy();
+        } else if (this.player && typeof this.player.stop === "function") {
+          this.player.stop();
+        }
+      } catch (e) {
+        console.error("Error destroying Plyr instance:", e);
+      }
+
+      try {
+        const mediaElements = document.querySelectorAll("video, audio");
+        mediaElements.forEach((el) => {
+          el.pause();
+          el.removeAttribute("src");
+          el.load();
+        });
+      } catch (e) {
+        console.error("Error pausing media DOM elements:", e);
+      }
+    },
+    render() {
+      if (!this.url) return;
+
+      const path = encodeURI(this.url);
+      const index = path.lastIndexOf(".");
+      
+      this.suffix = index !== -1 ? path.substring(index + 1).toLowerCase() : "";
+      this.loadSub(path, index);
+
+      const origin = typeof window !== "undefined" ? window.location.origin : "";
+      this.videoUrl = origin + path;
+      this.apiVideoUrl = this.options.api ? this.options.api + this.videoUrl : "";
+
+      if (!this.options.api) {
+        const options = {
+          src: this.videoUrl,
+          autoplay: this.options.autoplay,
+          media: this.player ? this.player.media : null,
+        };
+
+        if (this.suffix === "m3u8") {
+          this.loadHls(options);
+        } else if (this.suffix === "flv") {
+          this.loadFlv(options);
+        }
+      }
+    },
+    loadSub(path, index) {
+      if (index !== -1) {
+        this.subtitle = path.substring(0, index) + ".vtt";
+      }
+    },
+    loadHls(options) {
+      import("@/plugin/vplayer/hls")
+        .then((res) => {
+          const Hls = res.default;
+          Hls({
+            ...options,
+            callback: (hls) => {
+              if (this.player) {
+                this.player.on("languagechange", () => {
+                  setTimeout(() => {
+                    if (hls) hls.subtitleTrack = this.player.currentTrack;
+                  }, 50);
+                });
+              }
+            },
+          });
+        })
+        .catch((err) => console.error("Failed to load HLS plugin:", err));
+    },
+    loadFlv(options) {
+      import("@/plugin/vplayer/flv")
+        .then((res) => {
+          const Flv = res.default;
+          Flv(options);
+        })
+        .catch((err) => console.error("Failed to load FLV plugin:", err));
+    },
+    copy() {
+      if (!this.videoUrl) return;
+
+      if (this.$copyText) {
+        this.$copyText(this.videoUrl);
+      } else if (navigator.clipboard) {
+        navigator.clipboard.writeText(this.videoUrl);
+      }
+
+      if (this.$notify) {
+        this.$notify({
+          title: "Thành công",
+          message: "Đã sao chép đường dẫn video trực tiếp!",
+          type: "success",
+          duration: 2000,
+        });
+      }
     },
   },
 };
@@ -326,7 +396,11 @@ export default {
   max-height: 75vh;
 }
 
-/* 🚀 CẤU HÌNH PHÁ BỎ SCOPED ĐỂ FIX TRIỆT ĐỂ FULLSCREEN TRÊN IOS MOBILE */
+/* =========================================================
+   🚀 CẤU HÌNH FIX TRIỆT ĐỂ LỖI TRÀN VIỀN / LỆCH KHUNG KHI PHÓNG TO & XOAY MÀN HÌNH
+   ========================================================= */
+
+/* Ép khung chứa video nằm tràn tuyệt đối ở Viewport màn hình */
 :global(.plyr--fullscreen-active),
 :global(.plyr--fullscreen-fallback) {
   position: fixed !important;
@@ -335,17 +409,20 @@ export default {
   right: 0 !important;
   bottom: 0 !important;
   width: 100vw !important;
-  height: 100dvh !important; /* dvh tự động căn chỉnh theo thanh địa chỉ Safari */
-  z-index: 2147483647 !important; /* z-index cao nhất tuyệt đối trong CSS */
+  height: 100dvh !important; /* dVH tương thích động theo thanh Safari iOS */
+  z-index: 2147483647 !important;
   background: #000000 !important;
   margin: 0 !important;
   padding: 0 !important;
+  touch-action: none;
 }
 
 :global(.plyr--fullscreen-active .plyr__video-wrapper),
 :global(.plyr--fullscreen-fallback .plyr__video-wrapper) {
   width: 100% !important;
   height: 100% !important;
+  max-width: 100vw !important;
+  max-height: 100dvh !important;
   display: flex !important;
   align-items: center !important;
   justify-content: center !important;
@@ -356,17 +433,19 @@ export default {
 :global(.plyr--fullscreen-fallback video) {
   width: 100% !important;
   height: 100% !important;
+  max-width: 100vw !important;
+  max-height: 100dvh !important;
   object-fit: contain !important;
-  max-height: none !important;
 }
 
-/* 🔒 KHÓA CUỘN TRANG WEB BÊN DƯỚI KHI ĐANG BẬT FULLSCREEN */
-:global(body:has(.plyr--fullscreen-active)),
-:global(body:has(.plyr--fullscreen-fallback)) {
+/* Khóa cuộn trang web triệt để bằng Class chủ động từ JS */
+:global(html.plyr-is-fullscreen),
+:global(body.plyr-is-fullscreen) {
   overflow: hidden !important;
   position: fixed !important;
   width: 100% !important;
   height: 100% !important;
+  touch-action: none !important;
 }
 
 /* Thanh công cụ Copy Link */
@@ -528,7 +607,7 @@ export default {
   color: #0284c7;
 }
 
-/* 📱 TỐI ƯU RIÊNG CHO MÀN HÌNH ĐIỆN THOẠI (< 640px) */
+/* TỐI ƯU MÀN HÌNH ĐIỆN THOẠI (< 640px) */
 @media (max-width: 640px) {
   .video-container {
     padding: 0 6px;
