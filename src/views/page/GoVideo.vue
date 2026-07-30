@@ -87,8 +87,8 @@ export default {
   },
   mounted() {
     this.render();
+    this.initMobileFullscreenFix();
   },
-  // FIX TRIỆT ĐỂ: Dừng toàn bộ âm thanh/video khi chuyển route hoặc đổi folder
   beforeDestroy() {
     this.stopAllMedia();
   },
@@ -97,6 +97,18 @@ export default {
     next();
   },
   methods: {
+    // Kích hoạt chế độ phóng to chuẩn thiết bị trên điện thoại (đặc biệt là iOS Safari)
+    initMobileFullscreenFix() {
+      this.$nextTick(() => {
+        const videoEl = this.$el.querySelector("video");
+        if (videoEl) {
+          // Bắt sự kiện khi người dùng bấm nút phóng to của Plyr trên điện thoại
+          videoEl.addEventListener("webkitbeginfullscreen", () => {
+            videoEl.style.objectFit = "contain";
+          });
+        }
+      });
+    },
     stopAllMedia() {
       try {
         if (this.$refs.plyr && this.$refs.plyr.player) {
@@ -321,6 +333,15 @@ export default {
   max-height: 75vh;
 }
 
+/* 📱 ÉP VIDEO BẮT BUỘC TRÀN KÍN MÀN HÌNH ĐIỆN THOẠI KHI PHÓNG TO / XOAY NGANG */
+>>> .plyr--fullscreen-active video,
+>>> .plyr--fullscreen-fallback video,
+>>> video:fullscreen {
+  object-fit: fill !important;
+  width: 100vw !important;
+  height: 100vh !important;
+}
+
 /* Thanh công cụ Copy Link */
 .video-actions-bar {
   padding: 16px 20px;
@@ -480,13 +501,39 @@ export default {
   color: #0284c7;
 }
 
+/* 📱 TỐI ƯU RIÊNG CHO MÀN HÌNH ĐIỆN THOẠI (< 640px) */
 @media (max-width: 640px) {
+  .video-container {
+    padding: 0 6px;
+    margin-top: 8px;
+  }
+  .video-card {
+    border-radius: 12px;
+  }
   .field-copy-group {
     flex-direction: column;
     align-items: flex-start;
   }
   .players-grid {
     grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+  }
+  .player-item {
+    padding: 8px 4px;
+  }
+  .player-icon-wrapper {
+    width: 32px;
+    height: 32px;
+  }
+  .player-name {
+    font-size: 10px;
+  }
+  /* Bắt video tự động vừa khít chiều rộng màn hình đứng */
+  >>> .plyr--video {
+    max-height: 50vh;
+  }
+  >>> .plyr video {
+    object-fit: contain;
   }
 }
 </style>
