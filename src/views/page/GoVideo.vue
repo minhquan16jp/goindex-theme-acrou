@@ -1,7 +1,36 @@
 <template>
   <div class="video-container">
-    <!-- Player Card: Khung phát Video chính phong cách Cinema -->
+    <!-- 1. KHUNG PHÁT VIDEO CHÍNH (CINEMA CARD) -->
     <div class="video-card">
+      <!-- Top Bar: Tên file đang phát -->
+      <div class="video-card-header">
+        <div class="playing-title-group">
+          <span class="status-dot"></span>
+          <h2 class="playing-title" :title="currentFileName">
+            {{ currentFileName }}
+          </h2>
+        </div>
+        <div class="header-actions">
+          <button
+            class="nav-btn"
+            :disabled="!prevFile"
+            title="Video trước"
+            @click="playFile(prevFile)"
+          >
+            <i class="fa fa-step-backward"></i>
+          </button>
+          <button
+            class="nav-btn"
+            :disabled="!nextFile"
+            title="Video tiếp theo"
+            @click="playFile(nextFile)"
+          >
+            <i class="fa fa-step-forward"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- Player Frame -->
       <div v-if="options && options.api" class="video-content-iframe">
         <iframe
           width="100%"
@@ -19,7 +48,14 @@
 
       <div v-else class="video-player-wrapper">
         <vue-plyr ref="plyr" :options="options">
-          <video controls crossorigin playsinline preload="metadata">
+          <video
+            controls
+            crossorigin
+            playsinline
+            webkit-playsinline
+            preload="metadata"
+            :key="videoUrl"
+          >
             <source :src="videoUrl" type="video/mp4" />
             <track
               v-if="subtitle"
@@ -33,10 +69,10 @@
         </vue-plyr>
       </div>
 
-      <!-- Control Bar & Quick Link Copy -->
+      <!-- Quick Actions Bar: Copy Link & Info -->
       <div class="video-actions-bar">
         <div class="field-copy-group">
-          <span class="link-label"><i class="fa fa-link"></i> Link Trực Tiếp:</span>
+          <span class="link-label"><i class="fa fa-link"></i> Đường dẫn trực tiếp:</span>
           <div class="input-with-btn">
             <input
               class="custom-input"
@@ -53,27 +89,69 @@
       </div>
     </div>
 
-    <!-- External Players Card: Danh sách mở bằng App ngoài -->
-    <div class="external-players-card">
-      <div class="card-title-group">
-        <span class="title-badge">EXTERNAL PLAYERS</span>
-        <h3 class="card-heading">Mở bằng Ứng Dụng Ngoại Vi</h3>
+    <!-- 2. DANH SÁCH TỆP TRONG THƯ MỤC (FILE EXPLORER / PLAYLIST) -->
+    <div class="file-explorer-card">
+      <div class="explorer-header">
+        <div class="explorer-title-group">
+          <div class="icon-badge"><i class="fa fa-folder-open"></i></div>
+          <div>
+            <h3 class="explorer-heading">Danh Sách Tệp Trong Thư Mục</h3>
+            <p class="explorer-sub">
+              {{ folderFiles.length }} tệp khả dụng • Nhấp để đổi video phát
+            </p>
+          </div>
+        </div>
+
+        <!-- Ô Tìm Kiếm Tệp -->
+        <div class="search-box">
+          <i class="fa fa-search search-icon"></i>
+          <input
+            v-model="searchQuery"
+            type="text"
+            placeholder="Lọc tệp..."
+            class="search-input"
+          />
+          <button v-if="searchQuery" class="clear-btn" @click="searchQuery = ''">
+            <i class="fa fa-times"></i>
+          </button>
+        </div>
       </div>
 
-      <div class="players-grid">
-        <a
-          v-for="(item, index) in players"
+      <!-- Danh sách tập tin -->
+      <div class="file-list-wrapper custom-scrollbar">
+        <div v-if="filteredFiles.length === 0" class="empty-state">
+          <i class="fa fa-film empty-icon"></i>
+          <p>Không tìm thấy tệp video phù hợp</p>
+        </div>
+
+        <div
+          v-for="(file, index) in filteredFiles"
           :key="index"
-          :href="item.scheme"
-          class="player-item"
-          target="_blank"
-          rel="noopener noreferrer"
+          class="file-item"
+          :class="{ active: isCurrentFile(file) }"
+          @click="playFile(file)"
         >
-          <div class="player-icon-wrapper">
-            <img class="player-icon" :src="item.icon" :alt="item.name" />
+          <div class="file-info-left">
+            <div class="file-type-icon">
+              <i v-if="isCurrentFile(file)" class="fa fa-play-circle text-active"></i>
+              <i v-else-if="isVideoFile(file.name)" class="fa fa-file-video-o"></i>
+              <i v-else class="fa fa-file-o"></i>
+            </div>
+            <div class="file-details">
+              <span class="file-name" :title="file.name">{{ file.name }}</span>
+              <span v-if="file.size" class="file-size">{{ file.size }}</span>
+            </div>
           </div>
-          <span class="player-name">{{ item.name }}</span>
-        </a>
+
+          <div class="file-status-right">
+            <span v-if="isCurrentFile(file)" class="badge-playing">
+              <i class="fa fa-volume-up"></i> Đang phát
+            </span>
+            <span v-else class="btn-play-hover">
+              Phát <i class="fa fa-chevron-right"></i>
+            </span>
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -82,6 +160,7 @@
 <script>
 import { decode64 } from "@utils/AcrouUtil";
 import VuePlyr from "vue-plyr";
+import "vue-plyr/dist/vue-plyr.css";
 
 export default {
   name: "VideoPlayer",
@@ -94,6 +173,8 @@ export default {
       videoUrl: "",
       subtitle: "",
       suffix: "",
+      searchQuery: "",
+      folderFiles: [], // Danh sách các file trong folder
     };
   },
   computed: {
@@ -103,10 +184,10 @@ export default {
       }
       return "";
     },
-    title() {
-      if (!this.url) return "Video";
+    currentFileName() {
+      if (!this.url) return "Đang tải video...";
       const parts = this.url.split("/");
-      return parts[parts.length - 1] || "Video";
+      return decodeURIComponent(parts[parts.length - 1] || "Video");
     },
     copyBtnText() {
       try {
@@ -115,6 +196,7 @@ export default {
         return "Sao chép";
       }
     },
+    // 🚀 CẤU HÌNH BẮT PLYR DÙNG PLAYER NATIVE CỦA IOS KHI PHÓNG TO
     options() {
       const globalOptions =
         typeof window !== "undefined" && window.themeOptions
@@ -128,8 +210,8 @@ export default {
         ratio: "16:9",
         fullscreen: {
           enabled: true,
-          fallback: true,
-          iosNative: false,
+          fallback: false,   // Tắt giả lập CSS Fullscreen
+          iosNative: true,   // 🌟 Ép iOS dùng Trình phát Native (AVPlayer) của Apple
         },
         controls: [
           "play-large",
@@ -144,7 +226,6 @@ export default {
           "settings",
           "pip",
           "airplay",
-          "download",
           "fullscreen",
         ],
         ...globalOptions,
@@ -158,68 +239,37 @@ export default {
     player() {
       return this.$refs.plyr ? this.$refs.plyr.player : null;
     },
-    getThunder() {
-      if (!this.videoUrl) return "";
-      try {
-        if (typeof Buffer !== "undefined") {
-          return Buffer.from("AA" + this.videoUrl + "ZZ").toString("base64");
-        }
-        return btoa(unescape(encodeURIComponent("AA" + this.videoUrl + "ZZ")));
-      } catch (e) {
-        return "";
-      }
+    // Lọc danh sách file theo ô tìm kiếm
+    filteredFiles() {
+      if (!this.searchQuery) return this.folderFiles;
+      const query = this.searchQuery.toLowerCase();
+      return this.folderFiles.filter((f) => f.name.toLowerCase().includes(query));
     },
-    players() {
-      const getCdn = (path) =>
-        this.$cdnpath ? this.$cdnpath(path) : path;
-      const encodedTitle = encodeURIComponent(this.title || "Video");
-
-      return [
-        {
-          name: "IINA",
-          icon: getCdn("images/player/iina.png"),
-          scheme: "iina://weblink?url=" + encodeURIComponent(this.videoUrl),
-        },
-        {
-          name: "PotPlayer",
-          icon: getCdn("images/player/potplayer.png"),
-          scheme: "potplayer://" + this.videoUrl,
-        },
-        {
-          name: "VLC",
-          icon: getCdn("images/player/vlc.png"),
-          scheme: "vlc://" + this.videoUrl,
-        },
-        {
-          name: "Thunder",
-          icon: getCdn("images/player/thunder.png"),
-          scheme: "thunder://" + this.getThunder,
-        },
-        {
-          name: "Aria2",
-          icon: getCdn("images/player/aria2.png"),
-          scheme: "javascript:void(0);",
-        },
-        {
-          name: "nPlayer",
-          icon: getCdn("images/player/nplayer.png"),
-          scheme: "nplayer-" + this.videoUrl,
-        },
-        {
-          name: "MXPlayer (Free)",
-          icon: getCdn("images/player/mxplayer.png"),
-          scheme: `intent:${this.videoUrl}#Intent;package=com.mxtech.videoplayer.ad;S.title=${encodedTitle};end`,
-        },
-        {
-          name: "MXPlayer (Pro)",
-          icon: getCdn("images/player/mxplayer.png"),
-          scheme: `intent:${this.videoUrl}#Intent;package=com.mxtech.videoplayer.pro;S.title=${encodedTitle};end`,
-        },
-      ];
+    // Lấy index file hiện tại
+    currentIndex() {
+      return this.folderFiles.findIndex((f) => this.isCurrentFile(f));
+    },
+    prevFile() {
+      if (this.currentIndex > 0) {
+        return this.folderFiles[this.currentIndex - 1];
+      }
+      return null;
+    },
+    nextFile() {
+      if (this.currentIndex !== -1 && this.currentIndex < this.folderFiles.length - 1) {
+        return this.folderFiles[this.currentIndex + 1];
+      }
+      return null;
+    },
+  },
+  watch: {
+    "$route.params.path"() {
+      this.render();
     },
   },
   mounted() {
     this.render();
+    this.loadFolderFiles();
   },
   beforeDestroy() {
     this.stopAllMedia();
@@ -257,7 +307,8 @@ export default {
 
       const origin = typeof window !== "undefined" ? window.location.origin : "";
       this.videoUrl = origin + path;
-      this.apiVideoUrl = (this.options && this.options.api) ? (this.options.api + this.videoUrl) : "";
+      this.apiVideoUrl =
+        this.options && this.options.api ? this.options.api + this.videoUrl : "";
 
       if (this.options && !this.options.api) {
         const options = {
@@ -307,6 +358,55 @@ export default {
         })
         .catch((e) => console.error(e));
     },
+    // Giả lập/Lấy danh sách các tệp trong cùng folder
+    loadFolderFiles() {
+      if (typeof window !== "undefined" && window.driveFiles) {
+        this.folderFiles = window.driveFiles;
+        return;
+      }
+
+      // Tự dựng danh sách danh mục nếu chưa có API ngoài
+      const currentPath = this.url || "";
+      const lastSlash = currentPath.lastIndexOf("/");
+      const currentDir = lastSlash !== -1 ? currentPath.substring(0, lastSlash) : "";
+
+      if (this.currentFileName) {
+        this.folderFiles = [
+          {
+            name: this.currentFileName,
+            path: currentPath,
+          },
+        ];
+      }
+    },
+    isCurrentFile(file) {
+      if (!file || !file.name) return false;
+      return file.name === this.currentFileName || file.path === this.url;
+    },
+    isVideoFile(filename) {
+      if (!filename) return false;
+      const ext = filename.split(".").pop().toLowerCase();
+      return ["mp4", "mkv", "webm", "m3u8", "flv", "avi", "mov"].includes(ext);
+    },
+    playFile(file) {
+      if (!file || this.isCurrentFile(file)) return;
+
+      if (file.path) {
+        // Chuyển Route nếu có path mã hóa
+        const encoded = typeof window.btoa !== "undefined"
+          ? window.btoa(file.path)
+          : file.path;
+        
+        if (this.$router) {
+          this.$router.push({ params: { path: encoded } }).catch(() => {});
+        } else {
+          window.location.hash = `#/${encoded}`;
+        }
+      } else {
+        // Hoặc cập nhật tên video trực tiếp
+        this.videoUrl = window.location.origin + encodeURI(file.url || file.name);
+      }
+    },
     copy() {
       if (!this.videoUrl) return;
 
@@ -329,57 +429,132 @@ export default {
 };
 </script>
 
-<!-- STYLE 1: Scoped cho riêng component này -->
 <style scoped>
 .video-container {
   max-width: 1040px;
-  margin: 16px auto 40px auto;
-  padding: 0 12px;
+  margin: 20px auto 50px auto;
+  padding: 0 16px;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
 }
 
-/* Cinema Player Card Container */
+/* 1. CINEMA PLAYER CARD */
 .video-card {
   background: #ffffff;
-  border-radius: 16px;
+  border-radius: 20px;
   border: 1px solid #e2e8f0;
-  box-shadow: 0 12px 32px -8px rgba(0, 0, 0, 0.08);
+  box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.07);
   overflow: hidden;
   margin-bottom: 24px;
-  transition: transform 0.25s ease, box-shadow 0.25s ease;
 }
 
-.video-card:hover {
-  box-shadow: 0 16px 40px -10px rgba(0, 0, 0, 0.12);
+.video-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 20px;
+  background: #f8fafc;
+  border-bottom: 1px solid #f1f5f9;
 }
 
+.playing-title-group {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  overflow: hidden;
+}
+
+.status-dot {
+  width: 9px;
+  height: 9px;
+  background-color: #10b981;
+  border-radius: 50%;
+  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.2);
+  flex-shrink: 0;
+}
+
+.playing-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: #1e293b;
+  margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.nav-btn {
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  color: #475569;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 12px;
+}
+
+.nav-btn:hover:not(:disabled) {
+  background: #0284c7;
+  color: #ffffff;
+  border-color: #0284c7;
+}
+
+.nav-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* FRAME KHUNG PHÁT 16:9 CHUẨN */
 .video-player-wrapper,
 .video-content-iframe {
   position: relative;
   width: 100%;
+  aspect-ratio: 16 / 9;
   background: #000000;
-  border-bottom: 1px solid #e2e8f0;
   overflow: hidden;
 }
 
 .video-content-iframe iframe {
-  aspect-ratio: 16 / 9;
-  min-height: 480px;
+  width: 100%;
+  height: 100%;
 }
 
-/* Tùy chỉnh màu nhấn Plyr Controls sang tông Cyan tươi mát */
 :deep(.plyr) {
+  width: 100% !important;
+  height: 100% !important;
   border-radius: 0 !important;
   --plyr-color-main: #0284c7;
   --plyr-video-background: #000000;
 }
 
 :deep(.plyr--video) {
-  max-height: 75vh;
+  height: 100% !important;
+  max-height: none !important;
 }
 
-/* Thanh công cụ Copy Link */
+:deep(.plyr__video-wrapper) {
+  height: 100% !important;
+}
+
+:deep(.plyr video) {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: contain !important;
+}
+
+/* THANH ACTION COPY LINK */
 .video-actions-bar {
-  padding: 16px 20px;
+  padding: 14px 20px;
   background: #ffffff;
 }
 
@@ -407,12 +582,11 @@ export default {
   border: 1px solid #cbd5e1;
   border-radius: 10px;
   padding: 3px;
-  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  transition: border-color 0.2s ease;
 }
 
 .input-with-btn:focus-within {
   border-color: #0284c7;
-  box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.15);
 }
 
 .custom-input {
@@ -423,7 +597,7 @@ export default {
   font-size: 13px;
   color: #1e293b;
   outline: none;
-  font-family: -apple-system, BlinkMacSystemFont, "SF Mono", Roboto, monospace;
+  font-family: monospace;
 }
 
 .btn-copy {
@@ -433,180 +607,256 @@ export default {
   background: #0284c7;
   color: #ffffff;
   border: none;
-  padding: 8px 18px;
+  padding: 8px 16px;
   font-size: 12.5px;
   font-weight: 600;
   border-radius: 8px;
   cursor: pointer;
   white-space: nowrap;
-  transition: all 0.2s ease;
-  box-shadow: 0 2px 6px rgba(2, 132, 199, 0.25);
+  transition: background 0.2s ease;
 }
 
 .btn-copy:hover {
   background: #0369a1;
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(2, 132, 199, 0.35);
 }
 
-.btn-copy:active {
-  transform: translateY(0);
-}
-
-/* External Players App Grid */
-.external-players-card {
+/* 2. FILE EXPLORER CARD */
+.file-explorer-card {
   background: #ffffff;
-  border-radius: 16px;
+  border-radius: 20px;
   border: 1px solid #e2e8f0;
-  padding: 20px 24px;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.03);
+  padding: 20px;
+  box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.04);
 }
 
-.card-title-group {
-  margin-bottom: 18px;
+.explorer-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+  gap: 16px;
 }
 
-.title-badge {
-  font-size: 10px;
-  font-weight: 800;
-  letter-spacing: 0.8px;
-  background: #f0f9ff;
+.explorer-title-group {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.icon-badge {
+  width: 42px;
+  height: 42px;
+  background: #e0f2fe;
   color: #0284c7;
-  padding: 3px 8px;
-  border-radius: 6px;
-  border: 1px solid #bae6fd;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
 }
 
-.card-heading {
-  font-size: 15px;
+.explorer-heading {
+  font-size: 16px;
   font-weight: 700;
   color: #0f172a;
-  margin-top: 6px;
+  margin: 0;
 }
 
-.players-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(105px, 1fr));
-  gap: 14px;
+.explorer-sub {
+  font-size: 12px;
+  color: #64748b;
+  margin: 2px 0 0 0;
 }
 
-.player-item {
+/* SEARCH BOX */
+.search-box {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 220px;
+}
+
+.search-icon {
+  position: absolute;
+  left: 12px;
+  color: #94a3b8;
+  font-size: 13px;
+}
+
+.search-input {
+  width: 100%;
+  padding: 8px 30px 8px 34px;
+  background: #f8fafc;
+  border: 1px solid #cbd5e1;
+  border-radius: 10px;
+  font-size: 13px;
+  color: #1e293b;
+  outline: none;
+  transition: all 0.2s ease;
+}
+
+.search-input:focus {
+  border-color: #0284c7;
+  background: #ffffff;
+  box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.1);
+}
+
+.clear-btn {
+  position: absolute;
+  right: 10px;
+  border: none;
+  background: transparent;
+  color: #94a3b8;
+  cursor: pointer;
+}
+
+/* DANH SÁCH FILE ITEM */
+.file-list-wrapper {
+  max-height: 380px;
+  overflow-y: auto;
   display: flex;
   flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 12px 8px;
-  background: #f8fafc;
-  border: 1px solid #e2e8f0;
-  border-radius: 12px;
-  text-decoration: none;
-  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  gap: 6px;
+  padding-right: 4px;
 }
 
-.player-item:hover {
-  background: #ffffff;
-  border-color: #0284c7;
-  transform: translateY(-2px);
-  box-shadow: 0 6px 18px rgba(2, 132, 199, 0.15);
-}
-
-.player-icon-wrapper {
-  width: 40px;
-  height: 40px;
+.file-item {
   display: flex;
   align-items: center;
-  justify-content: center;
+  justify-content: space-between;
+  padding: 10px 14px;
+  background: #f8fafc;
+  border: 1px solid transparent;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.file-item:hover {
+  background: #f0f9ff;
+  border-color: #bae6fd;
+}
+
+.file-item.active {
+  background: #f0f9ff;
+  border-color: #0284c7;
+  box-shadow: 0 2px 8px rgba(2, 132, 199, 0.08);
+}
+
+.file-info-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  overflow: hidden;
+}
+
+.file-type-icon {
+  font-size: 18px;
+  color: #64748b;
+  width: 24px;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+.text-active {
+  color: #0284c7;
+}
+
+.file-details {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.file-name {
+  font-size: 13.5px;
+  font-weight: 500;
+  color: #334155;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.file-item.active .file-name {
+  font-weight: 700;
+  color: #0284c7;
+}
+
+.file-size {
+  font-size: 11px;
+  color: #94a3b8;
+}
+
+.file-status-right {
+  flex-shrink: 0;
+  margin-left: 12px;
+}
+
+.badge-playing {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11px;
+  font-weight: 700;
+  color: #0284c7;
+  background: #e0f2fe;
+  padding: 4px 10px;
+  border-radius: 20px;
+}
+
+.btn-play-hover {
+  font-size: 12px;
+  font-weight: 600;
+  color: #64748b;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.file-item:hover .btn-play-hover {
+  opacity: 1;
+  color: #0284c7;
+}
+
+.empty-state {
+  padding: 40px 0;
+  text-align: center;
+  color: #94a3b8;
+}
+
+.empty-icon {
+  font-size: 32px;
   margin-bottom: 8px;
 }
 
-.player-icon {
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
+/* Custom Scrollbar */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 5px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: #f1f5f9;
+  border-radius: 10px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 10px;
 }
 
-.player-name {
-  font-size: 12px;
-  font-weight: 600;
-  color: #475569;
-  text-align: center;
-}
-
-.player-item:hover .player-name {
-  color: #0284c7;
-}
-
-/* Mobile responsive */
+/* RESPONSIVE MOBILE (< 640px) */
 @media (max-width: 640px) {
   .video-container {
-    padding: 0 6px;
-    margin-top: 8px;
+    padding: 0 8px;
+    margin-top: 10px;
   }
-  .video-card {
-    border-radius: 12px;
+  .explorer-header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .search-box {
+    width: 100%;
   }
   .field-copy-group {
     flex-direction: column;
     align-items: flex-start;
   }
-  .players-grid {
-    grid-template-columns: repeat(4, 1fr);
-    gap: 8px;
-  }
-  .player-item {
-    padding: 8px 4px;
-  }
-  .player-icon-wrapper {
-    width: 32px;
-    height: 32px;
-  }
-  .player-name {
-    font-size: 10px;
-  }
-  :deep(.plyr--video) {
-    max-height: 50vh;
-  }
-  :deep(.plyr video) {
-    object-fit: contain;
-  }
-}
-</style>
-
-<!-- STYLE 2: Unscoped (Global) để fix dứt điểm lỗi tràn màn hình khi phóng to trên iOS Mobile -->
-<style>
-.plyr--fullscreen-active,
-.plyr--fullscreen-fallback {
-  position: fixed !important;
-  top: 0 !important;
-  left: 0 !important;
-  right: 0 !important;
-  bottom: 0 !important;
-  width: 100vw !important;
-  height: 100dvh !important;
-  z-index: 2147483647 !important;
-  background: #000000 !important;
-  margin: 0 !important;
-  padding: 0 !important;
-}
-
-.plyr--fullscreen-active .plyr__video-wrapper,
-.plyr--fullscreen-fallback .plyr__video-wrapper {
-  width: 100% !important;
-  height: 100% !important;
-  max-width: 100vw !important;
-  max-height: 100dvh !important;
-  display: flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  background: #000000 !important;
-}
-
-.plyr--fullscreen-active video,
-.plyr--fullscreen-fallback video {
-  width: 100% !important;
-  height: 100% !important;
-  max-width: 100vw !important;
-  max-height: 100dvh !important;
-  object-fit: contain !important;
 }
 </style>
