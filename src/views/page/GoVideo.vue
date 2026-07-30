@@ -31,7 +31,7 @@
       </div>
 
       <!-- Player Frame -->
-      <div v-if="options && options.api" class="video-content-iframe">
+      <div v-if="isApiMode" class="video-content-iframe">
         <iframe
           width="100%"
           height="100%"
@@ -47,10 +47,10 @@
       </div>
 
       <div v-else class="video-player-wrapper">
-        <vue-plyr ref="plyr" :options="options">
+        <vue-plyr ref="plyr" :options="plyrOptions">
           <video
             controls
-            crossorigin
+            crossorigin="anonymous"
             playsinline
             webkit-playsinline
             preload="metadata"
@@ -126,7 +126,7 @@
 
         <div
           v-for="(file, index) in filteredFiles"
-          :key="index"
+          :key="file.path || file.name || index"
           class="file-item"
           :class="{ active: isCurrentFile(file) }"
           @click="playFile(file)"
@@ -160,7 +160,6 @@
 <script>
 import { decode64 } from "@utils/AcrouUtil";
 import VuePlyr from "vue-plyr";
-import "vue-plyr/dist/vue-plyr.css";
 
 export default {
   name: "VideoPlayer",
@@ -174,35 +173,9 @@ export default {
       subtitle: "",
       suffix: "",
       searchQuery: "",
-      folderFiles: [], // Danh sách các file trong folder
-    };
-  },
-  computed: {
-    url() {
-      if (this.$route && this.$route.params && this.$route.params.path) {
-        return decode64(this.$route.params.path);
-      }
-      return "";
-    },
-    currentFileName() {
-      if (!this.url) return "Đang tải video...";
-      const parts = this.url.split("/");
-      return decodeURIComponent(parts[parts.length - 1] || "Video");
-    },
-    copyBtnText() {
-      try {
-        return this.$t ? this.$t("copy.text") : "Sao chép";
-      } catch (e) {
-        return "Sao chép";
-      }
-    },
-    // 🚀 CẤU HÌNH BẮT PLYR DÙNG PLAYER NATIVE CỦA IOS KHI PHÓNG TO
-    options() {
-      const globalOptions =
-        typeof window !== "undefined" && window.themeOptions
-          ? window.themeOptions.video
-          : {};
-      return {
+      folderFiles: [],
+      // Đưa config plyr vào data để tránh lỗi reactivity crash render
+      plyrOptions: {
         autoplay: false,
         invertTime: false,
         seekTime: 10,
@@ -210,8 +183,8 @@ export default {
         ratio: "16:9",
         fullscreen: {
           enabled: true,
-          fallback: false,   // Tắt giả lập CSS Fullscreen
-          iosNative: true,   // 🌟 Ép iOS dùng Trình phát Native (AVPlayer) của Apple
+          fallback: false,
+          iosNative: true,
         },
         controls: [
           "play-large",
@@ -228,24 +201,53 @@ export default {
           "airplay",
           "fullscreen",
         ],
-        ...globalOptions,
         captions: {
           active: true,
           language: "default",
-          ...(globalOptions ? globalOptions.captions : {}),
         },
-      };
+      },
+    };
+  },
+  computed: {
+    url() {
+      try {
+        if (this.$route && this.$route.params && this.$route.params.path) {
+          return decode64(this.$route.params.path);
+        }
+      } catch (e) {
+        console.error("Lỗi giải mã URL path:", e);
+      }
+      return "";
+    },
+    currentFileName() {
+      if (!this.url) return "Đang tải video...";
+      const parts = this.url.split("/");
+      return decodeURIComponent(parts[parts.length - 1] || "Video");
+    },
+    copyBtnText() {
+      try {
+        return this.$t ? this.$t("copy.text") : "Sao chép";
+      } catch (e) {
+        return "Sao chép";
+      }
+    },
+    isApiMode() {
+      const globalOpts =
+        typeof window !== "undefined" && window.themeOptions
+          ? window.themeOptions.video
+          : null;
+      return !!(globalOpts && globalOpts.api);
     },
     player() {
       return this.$refs.plyr ? this.$refs.plyr.player : null;
     },
-    // Lọc danh sách file theo ô tìm kiếm
     filteredFiles() {
       if (!this.searchQuery) return this.folderFiles;
       const query = this.searchQuery.toLowerCase();
-      return this.folderFiles.filter((f) => f.name.toLowerCase().includes(query));
+      return this.folderFiles.filter((f) =>
+        (f.name || "").toLowerCase().includes(query)
+      );
     },
-    // Lấy index file hiện tại
     currentIndex() {
       return this.folderFiles.findIndex((f) => this.isCurrentFile(f));
     },
@@ -256,7 +258,10 @@ export default {
       return null;
     },
     nextFile() {
-      if (this.currentIndex !== -1 && this.currentIndex < this.folderFiles.length - 1) {
+      if (
+        this.currentIndex !== -1 &&
+        this.currentIndex < this.folderFiles.length - 1
+      ) {
         return this.folderFiles[this.currentIndex + 1];
       }
       return null;
@@ -266,6 +271,15 @@ export default {
     "$route.params.path"() {
       this.render();
     },
+  },
+  created() {
+    // Merge themeOptions an toàn trước khi mount component
+    if (typeof window !== "undefined" && window.themeOptions && window.themeOptions.video) {
+      this.plyrOptions = {
+        ...this.plyrOptions,
+        ...window.themeOptions.video,
+      };
+    }
   },
   mounted() {
     this.render();
@@ -285,7 +299,7 @@ export default {
           this.player.stop();
         }
       } catch (e) {
-        console.error("Error stopping Plyr player:", e);
+        console.error("Lỗi khi dừng Plyr player:", e);
       }
 
       try {
@@ -296,7 +310,7 @@ export default {
           el.load();
         });
       } catch (e) {
-        console.error("Error pausing media DOM elements:", e);
+        console.error("Lỗi khi pause media DOM elements:", e);
       }
     },
     render() {
@@ -307,13 +321,18 @@ export default {
 
       const origin = typeof window !== "undefined" ? window.location.origin : "";
       this.videoUrl = origin + path;
-      this.apiVideoUrl =
-        this.options && this.options.api ? this.options.api + this.videoUrl : "";
 
-      if (this.options && !this.options.api) {
+      const globalOpts =
+        typeof window !== "undefined" && window.themeOptions
+          ? window.themeOptions.video
+          : null;
+
+      if (globalOpts && globalOpts.api) {
+        this.apiVideoUrl = globalOpts.api + this.videoUrl;
+      } else {
         const options = {
           src: this.videoUrl,
-          autoplay: this.options.autoplay,
+          autoplay: this.plyrOptions.autoplay,
           media: this.player ? this.player.media : null,
         };
 
@@ -333,43 +352,42 @@ export default {
       import("@/plugin/vplayer/hls")
         .then((res) => {
           const Hls = res.default;
-          Hls({
-            ...options,
-            callback: (hls) => {
-              if (this.player) {
-                this.player.on("languagechange", () => {
-                  setTimeout(() => {
-                    if (hls && this.player) {
-                      hls.subtitleTrack = this.player.currentTrack;
-                    }
-                  }, 50);
-                });
-              }
-            },
-          });
+          if (typeof Hls === "function") {
+            Hls({
+              ...options,
+              callback: (hls) => {
+                if (this.player) {
+                  this.player.on("languagechange", () => {
+                    setTimeout(() => {
+                      if (hls && this.player) {
+                        hls.subtitleTrack = this.player.currentTrack;
+                      }
+                    }, 50);
+                  });
+                }
+              },
+            });
+          }
         })
-        .catch((e) => console.error(e));
+        .catch((e) => console.error("Lỗi load Hls plugin:", e));
     },
     loadFlv(options) {
       import("@/plugin/vplayer/flv")
         .then((res) => {
           const Flv = res.default;
-          Flv(options);
+          if (typeof Flv === "function") {
+            Flv(options);
+          }
         })
-        .catch((e) => console.error(e));
+        .catch((e) => console.error("Lỗi load Flv plugin:", e));
     },
-    // Giả lập/Lấy danh sách các tệp trong cùng folder
     loadFolderFiles() {
       if (typeof window !== "undefined" && window.driveFiles) {
         this.folderFiles = window.driveFiles;
         return;
       }
 
-      // Tự dựng danh sách danh mục nếu chưa có API ngoài
       const currentPath = this.url || "";
-      const lastSlash = currentPath.lastIndexOf("/");
-      const currentDir = lastSlash !== -1 ? currentPath.substring(0, lastSlash) : "";
-
       if (this.currentFileName) {
         this.folderFiles = [
           {
@@ -392,19 +410,18 @@ export default {
       if (!file || this.isCurrentFile(file)) return;
 
       if (file.path) {
-        // Chuyển Route nếu có path mã hóa
-        const encoded = typeof window.btoa !== "undefined"
-          ? window.btoa(file.path)
-          : file.path;
-        
+        const encoded =
+          typeof window.btoa !== "undefined"
+            ? window.btoa(file.path)
+            : file.path;
+
         if (this.$router) {
           this.$router.push({ params: { path: encoded } }).catch(() => {});
         } else {
           window.location.hash = `#/${encoded}`;
         }
-      } else {
-        // Hoặc cập nhật tên video trực tiếp
-        this.videoUrl = window.location.origin + encodeURI(file.url || file.name);
+      } else if (file.url) {
+        this.videoUrl = window.location.origin + encodeURI(file.url);
       }
     },
     copy() {
@@ -430,6 +447,9 @@ export default {
 </script>
 
 <style scoped>
+/* Nhập CSS trực tiếp hoặc đảm bảo Vue-Plyr CSS không gây xung đột */
+@import "~vue-plyr/dist/vue-plyr.css";
+
 .video-container {
   max-width: 1040px;
   margin: 20px auto 50px auto;
