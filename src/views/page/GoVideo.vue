@@ -43,11 +43,10 @@
               type="text"
               readonly
               :value="videoUrl"
-              aria-label="Direct Video URL"
               @click="$event.target.select()"
             />
-            <button class="btn-copy" type="button" aria-label="Copy Link" @click="copy">
-              <i class="fa fa-clone"></i> {{ $t ? $t("copy.text") : "Sao chép" }}
+            <button class="btn-copy" type="button" @click="copy">
+              <i class="fa fa-clone"></i> {{ copyBtnText }}
             </button>
           </div>
         </div>
@@ -71,7 +70,7 @@
           rel="noopener noreferrer"
         >
           <div class="player-icon-wrapper">
-            <img class="player-icon" :src="item.icon" :alt="item.name" loading="lazy" />
+            <img class="player-icon" :src="item.icon" :alt="item.name" />
           </div>
           <span class="player-name">{{ item.name }}</span>
         </a>
@@ -104,11 +103,17 @@ export default {
       }
       return "";
     },
-    // Fix lỗi: Thiếu thuộc tính title dẫn đến gãy liên kết MXPlayer
     title() {
       if (!this.url) return "Video";
       const parts = this.url.split("/");
       return parts[parts.length - 1] || "Video";
+    },
+    copyBtnText() {
+      try {
+        return this.$t ? this.$t("copy.text") : "Sao chép";
+      } catch (e) {
+        return "Sao chép";
+      }
     },
     options() {
       const globalOptions =
@@ -156,15 +161,18 @@ export default {
     getThunder() {
       if (!this.videoUrl) return "";
       try {
-        return window.btoa("AA" + this.videoUrl + "ZZ");
+        if (typeof Buffer !== "undefined") {
+          return Buffer.from("AA" + this.videoUrl + "ZZ").toString("base64");
+        }
+        return btoa(unescape(encodeURIComponent("AA" + this.videoUrl + "ZZ")));
       } catch (e) {
         return "";
       }
     },
     players() {
       const getCdn = (path) =>
-        this.$cdnpath ? this.$cdnpath(path) : `/assets/${path}`;
-      const encodedTitle = encodeURIComponent(this.title);
+        this.$cdnpath ? this.$cdnpath(path) : path;
+      const encodedTitle = encodeURIComponent(this.title || "Video");
 
       return [
         {
@@ -212,49 +220,22 @@ export default {
   },
   mounted() {
     this.render();
-    this.bindFullscreenEvents();
   },
   beforeDestroy() {
     this.stopAllMedia();
-    this.removeFullscreenClasses();
   },
   beforeRouteLeave(to, from, next) {
     this.stopAllMedia();
-    this.removeFullscreenClasses();
     next();
   },
   methods: {
-    // Tự động gắn class vào <html> và <body> khi mở Fullscreen để khóa cuộn 100%
-    bindFullscreenEvents() {
-      this.$nextTick(() => {
-        if (this.player) {
-          this.player.on("enterfullscreen", () => {
-            if (typeof document !== "undefined") {
-              document.documentElement.classList.add("plyr-is-fullscreen");
-              document.body.classList.add("plyr-is-fullscreen");
-            }
-          });
-          this.player.on("exitfullscreen", () => {
-            this.removeFullscreenClasses();
-          });
-        }
-      });
-    },
-    removeFullscreenClasses() {
-      if (typeof document !== "undefined") {
-        document.documentElement.classList.remove("plyr-is-fullscreen");
-        document.body.classList.remove("plyr-is-fullscreen");
-      }
-    },
     stopAllMedia() {
       try {
-        if (this.player && typeof this.player.destroy === "function") {
-          this.player.destroy();
-        } else if (this.player && typeof this.player.stop === "function") {
+        if (this.player && typeof this.player.stop === "function") {
           this.player.stop();
         }
       } catch (e) {
-        console.error("Error destroying Plyr instance:", e);
+        console.error("Error stopping Plyr player:", e);
       }
 
       try {
@@ -269,19 +250,16 @@ export default {
       }
     },
     render() {
-      if (!this.url) return;
-
-      const path = encodeURI(this.url);
+      const path = encodeURI(this.url || "");
       const index = path.lastIndexOf(".");
-      
-      this.suffix = index !== -1 ? path.substring(index + 1).toLowerCase() : "";
+      this.suffix = index !== -1 ? path.substring(index + 1) : "";
       this.loadSub(path, index);
 
       const origin = typeof window !== "undefined" ? window.location.origin : "";
       this.videoUrl = origin + path;
-      this.apiVideoUrl = this.options.api ? this.options.api + this.videoUrl : "";
+      this.apiVideoUrl = (this.options && this.options.api) ? (this.options.api + this.videoUrl) : "";
 
-      if (!this.options.api) {
+      if (this.options && !this.options.api) {
         const options = {
           src: this.videoUrl,
           autoplay: this.options.autoplay,
@@ -310,14 +288,16 @@ export default {
               if (this.player) {
                 this.player.on("languagechange", () => {
                   setTimeout(() => {
-                    if (hls) hls.subtitleTrack = this.player.currentTrack;
+                    if (hls && this.player) {
+                      hls.subtitleTrack = this.player.currentTrack;
+                    }
                   }, 50);
                 });
               }
             },
           });
         })
-        .catch((err) => console.error("Failed to load HLS plugin:", err));
+        .catch((e) => console.error(e));
     },
     loadFlv(options) {
       import("@/plugin/vplayer/flv")
@@ -325,7 +305,7 @@ export default {
           const Flv = res.default;
           Flv(options);
         })
-        .catch((err) => console.error("Failed to load FLV plugin:", err));
+        .catch((e) => console.error(e));
     },
     copy() {
       if (!this.videoUrl) return;
@@ -349,6 +329,7 @@ export default {
 };
 </script>
 
+<!-- STYLE 1: Scoped cho riêng component này -->
 <style scoped>
 .video-container {
   max-width: 1040px;
@@ -356,7 +337,7 @@ export default {
   padding: 0 12px;
 }
 
-/* 1. Cinema Player Card Container */
+/* Cinema Player Card Container */
 .video-card {
   background: #ffffff;
   border-radius: 16px;
@@ -394,58 +375,6 @@ export default {
 
 :deep(.plyr--video) {
   max-height: 75vh;
-}
-
-/* =========================================================
-   🚀 CẤU HÌNH FIX TRIỆT ĐỂ LỖI TRÀN VIỀN / LỆCH KHUNG KHI PHÓNG TO & XOAY MÀN HÌNH
-   ========================================================= */
-
-/* Ép khung chứa video nằm tràn tuyệt đối ở Viewport màn hình */
-:global(.plyr--fullscreen-active),
-:global(.plyr--fullscreen-fallback) {
-  position: fixed !important;
-  top: 0 !important;
-  left: 0 !important;
-  right: 0 !important;
-  bottom: 0 !important;
-  width: 100vw !important;
-  height: 100dvh !important; /* dVH tương thích động theo thanh Safari iOS */
-  z-index: 2147483647 !important;
-  background: #000000 !important;
-  margin: 0 !important;
-  padding: 0 !important;
-  touch-action: none;
-}
-
-:global(.plyr--fullscreen-active .plyr__video-wrapper),
-:global(.plyr--fullscreen-fallback .plyr__video-wrapper) {
-  width: 100% !important;
-  height: 100% !important;
-  max-width: 100vw !important;
-  max-height: 100dvh !important;
-  display: flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  background: #000000 !important;
-}
-
-:global(.plyr--fullscreen-active video),
-:global(.plyr--fullscreen-fallback video) {
-  width: 100% !important;
-  height: 100% !important;
-  max-width: 100vw !important;
-  max-height: 100dvh !important;
-  object-fit: contain !important;
-}
-
-/* Khóa cuộn trang web triệt để bằng Class chủ động từ JS */
-:global(html.plyr-is-fullscreen),
-:global(body.plyr-is-fullscreen) {
-  overflow: hidden !important;
-  position: fixed !important;
-  width: 100% !important;
-  height: 100% !important;
-  touch-action: none !important;
 }
 
 /* Thanh công cụ Copy Link */
@@ -524,7 +453,7 @@ export default {
   transform: translateY(0);
 }
 
-/* 2. External Players App Grid */
+/* External Players App Grid */
 .external-players-card {
   background: #ffffff;
   border-radius: 16px;
@@ -607,7 +536,7 @@ export default {
   color: #0284c7;
 }
 
-/* TỐI ƯU MÀN HÌNH ĐIỆN THOẠI (< 640px) */
+/* Mobile responsive */
 @media (max-width: 640px) {
   .video-container {
     padding: 0 6px;
@@ -640,5 +569,44 @@ export default {
   :deep(.plyr video) {
     object-fit: contain;
   }
+}
+</style>
+
+<!-- STYLE 2: Unscoped (Global) để fix dứt điểm lỗi tràn màn hình khi phóng to trên iOS Mobile -->
+<style>
+.plyr--fullscreen-active,
+.plyr--fullscreen-fallback {
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  width: 100vw !important;
+  height: 100dvh !important;
+  z-index: 2147483647 !important;
+  background: #000000 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+.plyr--fullscreen-active .plyr__video-wrapper,
+.plyr--fullscreen-fallback .plyr__video-wrapper {
+  width: 100% !important;
+  height: 100% !important;
+  max-width: 100vw !important;
+  max-height: 100dvh !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  background: #000000 !important;
+}
+
+.plyr--fullscreen-active video,
+.plyr--fullscreen-fallback video {
+  width: 100% !important;
+  height: 100% !important;
+  max-width: 100vw !important;
+  max-height: 100dvh !important;
+  object-fit: contain !important;
 }
 </style>
