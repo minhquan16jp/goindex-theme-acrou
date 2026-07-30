@@ -316,34 +316,34 @@ export default {
 }
 
 /* Tùy chỉnh màu nhấn Plyr Controls sang tông Cyan tươi mát */
->>> .plyr {
+:deep(.plyr) {
   border-radius: 0 !important;
   --plyr-color-main: #0284c7;
   --plyr-video-background: #000000;
 }
 
->>> .plyr--video {
+:deep(.plyr--video) {
   max-height: 75vh;
 }
 
-/* 🎨 GIỮ NGUYÊN UI PLYR - TỐI ƯU WEB FULLSCREEN CỰC MIN TRÊN ĐIỆN THOẠI */
->>> .plyr--fullscreen-active,
->>> .plyr--fullscreen-fallback {
+/* 🚀 CẤU HÌNH PHÁ BỎ SCOPED ĐỂ FIX TRIỆT ĐỂ FULLSCREEN TRÊN IOS MOBILE */
+:global(.plyr--fullscreen-active),
+:global(.plyr--fullscreen-fallback) {
   position: fixed !important;
   top: 0 !important;
   left: 0 !important;
   right: 0 !important;
   bottom: 0 !important;
   width: 100vw !important;
-  height: 100dvh !important; /* Dùng 100dvh chống tràn Safari trên iPhone */
-  z-index: 99999999 !important;
+  height: 100dvh !important; /* dvh tự động căn chỉnh theo thanh địa chỉ Safari */
+  z-index: 2147483647 !important; /* z-index cao nhất tuyệt đối trong CSS */
   background: #000000 !important;
   margin: 0 !important;
   padding: 0 !important;
 }
 
->>> .plyr--fullscreen-active .plyr__video-wrapper,
->>> .plyr--fullscreen-fallback .plyr__video-wrapper {
+:global(.plyr--fullscreen-active .plyr__video-wrapper),
+:global(.plyr--fullscreen-fallback .plyr__video-wrapper) {
   width: 100% !important;
   height: 100% !important;
   display: flex !important;
@@ -352,12 +352,21 @@ export default {
   background: #000000 !important;
 }
 
->>> .plyr--fullscreen-active video,
->>> .plyr--fullscreen-fallback video {
+:global(.plyr--fullscreen-active video),
+:global(.plyr--fullscreen-fallback video) {
   width: 100% !important;
   height: 100% !important;
   object-fit: contain !important;
   max-height: none !important;
+}
+
+/* 🔒 KHÓA CUỘN TRANG WEB BÊN DƯỚI KHI ĐANG BẬT FULLSCREEN */
+:global(body:has(.plyr--fullscreen-active)),
+:global(body:has(.plyr--fullscreen-fallback)) {
+  overflow: hidden !important;
+  position: fixed !important;
+  width: 100% !important;
+  height: 100% !important;
 }
 
 /* Thanh công cụ Copy Link */
@@ -546,10 +555,10 @@ export default {
   .player-name {
     font-size: 10px;
   }
-  >>> .plyr--video {
+  :deep(.plyr--video) {
     max-height: 50vh;
   }
-  >>> .plyr video {
+  :deep(.plyr video) {
     object-fit: contain;
   }
 }
