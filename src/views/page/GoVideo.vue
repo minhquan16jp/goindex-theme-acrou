@@ -87,7 +87,6 @@ export default {
   },
   mounted() {
     this.render();
-    this.initMobileFullscreenFix();
   },
   beforeDestroy() {
     this.stopAllMedia();
@@ -97,33 +96,6 @@ export default {
     next();
   },
   methods: {
-    // Kích hoạt chế độ phóng to chuẩn thiết bị trên điện thoại (đặc biệt là iOS Safari)
-   // Kích hoạt chế độ phóng to chuẩn thiết bị trên điện thoại (đặc biệt là iOS Safari)
-    initMobileFullscreenFix() {
-      this.$nextTick(() => {
-        const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-        if (isMobile) {
-          // Lắng nghe sự kiện click nút Phóng to trên điện thoại
-          this.$el.addEventListener("click", (e) => {
-            const fsBtn = e.target.closest('.plyr__controls__item[data-plyr="fullscreen"]') ||
-                          e.target.closest('.dplayer-full-icon') ||
-                          e.target.closest('.dplayer-full-in-icon');
-
-            if (fsBtn) {
-              const video = this.$el.querySelector("video");
-              if (video) {
-                // Bắt buộc iOS Safari / Android mở Fullscreen gốc của thiết bị
-                if (video.webkitEnterFullscreen) {
-                  video.webkitEnterFullscreen();
-                } else if (video.requestFullscreen) {
-                  video.requestFullscreen();
-                }
-              }
-            }
-          }, true);
-        }
-      });
-    },
     stopAllMedia() {
       try {
         if (this.$refs.plyr && this.$refs.plyr.player) {
@@ -211,6 +183,12 @@ export default {
         seekTime: 10,
         settings: ["quality", "speed", "loop"],
         ratio: "16:9",
+        // 🚀 BẮT PLYR GIỮ NGUYÊN UI VÀ DÙNG GIẢ LẬP FULLSCREEN TRÊN MOBILE
+        fullscreen: {
+          enabled: true,
+          fallback: true,
+          iosNative: false,
+        },
         controls: [
           "play-large",
           "restart",
@@ -348,13 +326,38 @@ export default {
   max-height: 75vh;
 }
 
-/* 📱 ÉP VIDEO BẮT BUỘC TRÀN KÍN MÀN HÌNH ĐIỆN THOẠI KHI PHÓNG TO / XOAY NGANG */
->>> .plyr--fullscreen-active video,
->>> .plyr--fullscreen-fallback video,
->>> video:fullscreen {
-  object-fit: fill !important;
+/* 🎨 GIỮ NGUYÊN UI PLYR - TỐI ƯU WEB FULLSCREEN CỰC MIN TRÊN ĐIỆN THOẠI */
+>>> .plyr--fullscreen-active,
+>>> .plyr--fullscreen-fallback {
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
   width: 100vw !important;
-  height: 100vh !important;
+  height: 100dvh !important; /* Dùng 100dvh chống tràn Safari trên iPhone */
+  z-index: 99999999 !important;
+  background: #000000 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+>>> .plyr--fullscreen-active .plyr__video-wrapper,
+>>> .plyr--fullscreen-fallback .plyr__video-wrapper {
+  width: 100% !important;
+  height: 100% !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  background: #000000 !important;
+}
+
+>>> .plyr--fullscreen-active video,
+>>> .plyr--fullscreen-fallback video {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: contain !important;
+  max-height: none !important;
 }
 
 /* Thanh công cụ Copy Link */
@@ -543,7 +546,6 @@ export default {
   .player-name {
     font-size: 10px;
   }
-  /* Bắt video tự động vừa khít chiều rộng màn hình đứng */
   >>> .plyr--video {
     max-height: 50vh;
   }
