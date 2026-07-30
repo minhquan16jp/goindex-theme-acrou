@@ -98,14 +98,29 @@ export default {
   },
   methods: {
     // Kích hoạt chế độ phóng to chuẩn thiết bị trên điện thoại (đặc biệt là iOS Safari)
+   // Kích hoạt chế độ phóng to chuẩn thiết bị trên điện thoại (đặc biệt là iOS Safari)
     initMobileFullscreenFix() {
       this.$nextTick(() => {
-        const videoEl = this.$el.querySelector("video");
-        if (videoEl) {
-          // Bắt sự kiện khi người dùng bấm nút phóng to của Plyr trên điện thoại
-          videoEl.addEventListener("webkitbeginfullscreen", () => {
-            videoEl.style.objectFit = "contain";
-          });
+        const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+        if (isMobile) {
+          // Lắng nghe sự kiện click nút Phóng to trên điện thoại
+          this.$el.addEventListener("click", (e) => {
+            const fsBtn = e.target.closest('.plyr__controls__item[data-plyr="fullscreen"]') ||
+                          e.target.closest('.dplayer-full-icon') ||
+                          e.target.closest('.dplayer-full-in-icon');
+
+            if (fsBtn) {
+              const video = this.$el.querySelector("video");
+              if (video) {
+                // Bắt buộc iOS Safari / Android mở Fullscreen gốc của thiết bị
+                if (video.webkitEnterFullscreen) {
+                  video.webkitEnterFullscreen();
+                } else if (video.requestFullscreen) {
+                  video.requestFullscreen();
+                }
+              }
+            }
+          }, true);
         }
       });
     },
